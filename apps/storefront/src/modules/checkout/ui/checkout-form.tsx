@@ -310,7 +310,7 @@ export function CheckoutForm() {
                   type="radio"
                   value="stripe"
                 />
-                Stripe
+                Credit Card
               </label>
               <label className="flex cursor-pointer items-center gap-3 rounded-md border border-input bg-background px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/40">
                 <input

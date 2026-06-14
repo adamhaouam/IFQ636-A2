@@ -17,14 +17,11 @@ import {
   escapeHtml,
   renderRegisteredEmailTemplate,
 } from "../email/email.templates.js";
-import {
-  StripePaymentAdapter
-} from "../payments/stripe.adapter.js"; //from interface instead?
 import { ProductModel } from "../products/product.model.js";
 import { orderEmailRegistry } from "./emails/email.registry.js";
 import { OrderModel, type OrderDocument } from "./order.model.js";
+import { getPaymentProvider } from "../payments/payment-provider.factory.js";
 
-const paymentAdapter = new StripePaymentAdapter();
 
 type OrderRecord = OrderDocument & {
   _id: { toString(): string };
@@ -525,6 +522,8 @@ export async function createCheckoutSessionForOrder(
   const items = await buildOrderItems(input.items);
   const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
 
+  const provider = getPaymentProvider(input.paymentMethod);
+
   const order: OrderCreate = {
     customer: {
       customerId,
@@ -540,7 +539,7 @@ export async function createCheckoutSessionForOrder(
       checkoutSessionId: null,
       currency: "aud",
       paymentIntentId: null,
-      provider: "stripe",
+      provider: input.paymentMethod,
       status: "pending",
     },
     status: "pending",
@@ -551,17 +550,13 @@ export async function createCheckoutSessionForOrder(
   const createdOrder = await OrderModel.create(order);
   const orderId = createdOrder._id.toString();
   const encodedOrderId = encodeURIComponent(orderId);
-  const checkoutSession = await paymentAdapter.createCheckoutSession({
-    cancelUrl: `${origin}/api/storefront/orders/checkout/stripe/cancel?orderId=${encodedOrderId}`,
+  const checkoutSession = await provider.createCheckoutSession({
+    cancelUrl: `${origin}/api/storefront/orders/checkout/${input.paymentMethod}/cancel?orderId=${encodedOrderId}`,
     customerEmail: input.customer.email,
     items,
     orderId,
-    successUrl: `${origin}/api/storefront/orders/checkout/stripe/success?orderId=${encodedOrderId}&session_id={CHECKOUT_SESSION_ID}`,
+    successUrl: `${origin}/api/storefront/orders/checkout/${input.paymentMethod}/success?orderId=${encodedOrderId}&session_id={CHECKOUT_SESSION_ID}`,
   });
-
-  if (!checkoutSession.redirectUrl) {
-    throw new OrderValidationError("Unable to create checkout session");
-  }
 
   await OrderModel.updateOne(
     { _id: orderId },
@@ -574,7 +569,7 @@ export async function createCheckoutSessionForOrder(
   };
 }
 
-export async function confirmStripeCheckoutOrder(
+export async function confirmCheckoutOrder(
   orderId: string,
   sessionId: string,
 ): Promise<Order> {
@@ -597,7 +592,9 @@ export async function confirmStripeCheckoutOrder(
     throw new OrderValidationError("Invalid checkout session");
   }
 
-  const checkoutSession = await paymentAdapter.verifyCheckoutSession({
+  const provider = getPaymentProvider(existingOrder.payment!.provider);
+
+  const checkoutSession = await provider.verifyCheckoutSession({
     expectedTotal: existingOrder.total,
     orderId,
     sessionId,
@@ -609,13 +606,11 @@ export async function confirmStripeCheckoutOrder(
       {
         $set: {
           payment: {
-            amount: checkoutSession.amount
-              ? checkoutSession.amount
-              : existingOrder.total,
+            amount: checkoutSession.amount,
             checkoutSessionId: checkoutSession.providerSessionId,
             currency: "aud",
             paymentIntentId: checkoutSession.paymentReference,
-            provider: "stripe",
+            provider: existingOrder.payment!.provider,
             status: "paid",
           },
         },
@@ -630,7 +625,7 @@ export async function confirmStripeCheckoutOrder(
   return serializedOrder;
 }
 
-export async function markStripeCheckoutCancelled(orderId: string) {
+export async function markCheckoutCancelled(orderId: string) {
   if (!isValidObjectId(orderId)) {
     throw new OrderValidationError("Invalid checkout cancellation");
   }
