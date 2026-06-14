@@ -60,6 +60,12 @@ export const env = {
   get stripeSecretKey() {
     return required("STRIPE_SECRET_KEY");
   },
+  get paypalSecretKey() {
+    return required("PAYPAL_SECRET_KEY");
+  },
+  get paypalClientId() {
+    return required("PAYPAL_CLIENT_ID");
+  },
   uploadsDir: process.env.UPLOADS_DIR ?? path.resolve(process.cwd(), "uploads"),
   email: {
     enabled: booleanValue("EMAIL_ENABLED", false),
