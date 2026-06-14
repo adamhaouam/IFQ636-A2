@@ -18,12 +18,13 @@ import {
   renderRegisteredEmailTemplate,
 } from "../email/email.templates.js";
 import {
-  createCheckoutSession,
-  verifyCheckoutSession,
-} from "../payments/payment.service.js"; //from interface instead?
+  StripePaymentAdapter
+} from "../payments/stripe.adapter.js"; //from interface instead?
 import { ProductModel } from "../products/product.model.js";
 import { orderEmailRegistry } from "./emails/email.registry.js";
 import { OrderModel, type OrderDocument } from "./order.model.js";
+
+const paymentAdapter = new StripePaymentAdapter();
 
 type OrderRecord = OrderDocument & {
   _id: { toString(): string };
@@ -550,7 +551,7 @@ export async function createCheckoutSessionForOrder(
   const createdOrder = await OrderModel.create(order);
   const orderId = createdOrder._id.toString();
   const encodedOrderId = encodeURIComponent(orderId);
-  const checkoutSession = await createCheckoutSession({
+  const checkoutSession = await paymentAdapter.createCheckoutSession({
     cancelUrl: `${origin}/api/storefront/orders/checkout/stripe/cancel?orderId=${encodedOrderId}`,
     customerEmail: input.customer.email,
     items,
@@ -558,18 +559,18 @@ export async function createCheckoutSessionForOrder(
     successUrl: `${origin}/api/storefront/orders/checkout/stripe/success?orderId=${encodedOrderId}&session_id={CHECKOUT_SESSION_ID}`,
   });
 
-  if (!checkoutSession.url) {
+  if (!checkoutSession.redirectUrl) {
     throw new OrderValidationError("Unable to create checkout session");
   }
 
   await OrderModel.updateOne(
     { _id: orderId },
-    { $set: { "payment.checkoutSessionId": checkoutSession.id } },
+    { $set: { "payment.checkoutSessionId": checkoutSession.sessionId } },
   ).exec();
 
   return {
     orderId,
-    redirectUrl: checkoutSession.url,
+    redirectUrl: checkoutSession.redirectUrl,
   };
 }
 
@@ -596,7 +597,7 @@ export async function confirmStripeCheckoutOrder(
     throw new OrderValidationError("Invalid checkout session");
   }
 
-  const checkoutSession = await verifyCheckoutSession({
+  const checkoutSession = await paymentAdapter.verifyCheckoutSession({
     expectedTotal: existingOrder.total,
     orderId,
     sessionId,
