@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 
 import {
+  serverEventBroadcaster,
   serverEventHub,
   type ServerEventLevel,
 } from "../server-events/index.js";
@@ -12,19 +13,19 @@ type StreamQuery = {
 type PublishBody = {
   channel?: string;
   resource?: string;
+  resourceId?: string;
   action?: string;
   message?: string;
   level?: ServerEventLevel;
-  payload?: unknown;
 };
-
-const DEFAULT_CHANNEL = "storefront";
-const DEFAULT_RESOURCE = "notification";
-const DEFAULT_ACTION = "created";
 
 export async function serverEventRoutes(app: FastifyInstance) {
   app.get<{ Querystring: StreamQuery }>("/", async (request, reply) => {
-    const channel = request.query.channel?.trim() || DEFAULT_CHANNEL;
+    const channel = request.query.channel?.trim();
+    if (!channel) {
+      return reply.code(400).send({ error: "channel is required" });
+    }
+
     serverEventHub.connect(channel, reply);
   });
 
@@ -34,18 +35,32 @@ export async function serverEventRoutes(app: FastifyInstance) {
     }
 
     const body = request.body ?? {};
-    const message = body.message?.trim() || "Server event notification";
+    const channel = body.channel?.trim();
+    if (!channel) {
+      return reply.code(400).send({ error: "channel is required" });
+    }
 
-    const event = serverEventHub.create({
-      action: body.action?.trim() || DEFAULT_ACTION,
-      channel: body.channel?.trim() || DEFAULT_CHANNEL,
-      level: body.level ?? "info",
+    const resource = body.resource?.trim();
+    if (!resource) {
+      return reply.code(400).send({ error: "resource is required" });
+    }
+
+    const action = body.action?.trim();
+    if (!action) {
+      return reply.code(400).send({ error: "action is required" });
+    }
+
+    const message = body.message?.trim();
+    const resourceId = body.resourceId?.trim();
+
+    const event = serverEventBroadcaster.publish({
+      action,
+      channel,
+      level: body.level,
       message,
-      payload: body.payload ?? { message },
-      resource: body.resource?.trim() || DEFAULT_RESOURCE,
+      resource,
+      resourceId,
     });
-
-    serverEventHub.publish(event);
 
     return reply.code(202).send({ event });
   });

@@ -1,18 +1,16 @@
-import { randomUUID } from "node:crypto";
-
 import type { FastifyReply } from "fastify";
 
-import type { ServerEvent, ServerEventInput } from "./events.js";
+import type { ServerEventEnvelope } from "./events.js";
 
 type Client = {
   channel: string;
-  write(event: ServerEvent): void;
+  write(event: ServerEventEnvelope): void;
   close(): void;
 };
 
 const HEARTBEAT_MS = 25_000;
 
-function toFrame(event: ServerEvent) {
+function toFrame(event: ServerEventEnvelope) {
   return `id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
@@ -45,27 +43,10 @@ export class ServerEventHub {
 
     this.clients.add(client);
     reply.raw.on("close", client.close);
-    client.write(
-      this.create({
-        action: "connected",
-        channel,
-        payload: { channel },
-        resource: "connection",
-        message: "Connected to server events.",
-        level: "info",
-      }),
-    );
+    reply.raw.write(": connected\n\n");
   }
 
-  create<TPayload>(input: ServerEventInput<TPayload>): ServerEvent<TPayload> {
-    return {
-      ...input,
-      id: randomUUID(),
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  publish(event: ServerEvent) {
+  publish(event: ServerEventEnvelope) {
     for (const client of this.clients) {
       if (client.channel === event.channel) {
         client.write(event);

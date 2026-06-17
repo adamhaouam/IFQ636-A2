@@ -1,21 +1,23 @@
 export type ServerEventLevel = "success" | "error" | "warning" | "info";
 
-export interface ServerEvent<TPayload = unknown> {
+export interface ServerEventEnvelope {
   id: string;
   channel: string;
   resource: string;
+  resourceId?: string;
   action: string;
-  payload: TPayload;
   message?: string;
   level?: ServerEventLevel;
   timestamp: string;
 }
 
-export interface ServerEventInput<TPayload = unknown> {
+export interface ServerEventInput {
   channel: string;
   resource: string;
+  resourceId?: string;
   action: string;
-  payload: TPayload;
   message?: string;
   level?: ServerEventLevel;
 }
+
+export type ServerEvent = ServerEventEnvelope;

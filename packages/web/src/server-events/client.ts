@@ -1,7 +1,7 @@
 import { dispatchServerEvent, type ServerEvent } from "./events";
 
 export interface ServerEventClientOptions {
-  channel?: string;
+  channel: string;
   url?: string;
   onError?: (error: Event) => void;
 }
@@ -12,7 +12,6 @@ export interface ServerEventClient {
 }
 
 const DEFAULT_URL = "/api/server-events";
-const DEFAULT_CHANNEL = "storefront";
 
 function withChannel(url: string, channel: string) {
   const target = new URL(url, window.location.origin);
@@ -21,10 +20,10 @@ function withChannel(url: string, channel: string) {
 }
 
 export function createServerEventClient({
-  channel = DEFAULT_CHANNEL,
+  channel,
   onError,
   url = DEFAULT_URL,
-}: ServerEventClientOptions = {}): ServerEventClient {
+}: ServerEventClientOptions): ServerEventClient {
   let source: EventSource | null = null;
 
   return {

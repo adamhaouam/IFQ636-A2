@@ -5,15 +5,7 @@ import {
   onServerEvent,
   type ServerEvent,
   type ServerEventFilter,
-} from "./events";
-import type { ServerEventClient } from "./client";
-
-export function useServerEventConnection(client: ServerEventClient) {
-  useEffect(() => {
-    client.connect();
-    return () => client.disconnect();
-  }, [client]);
-}
+} from "../events";
 
 export interface UseServerEventOptions extends ServerEventFilter {
   enabled?: boolean;
