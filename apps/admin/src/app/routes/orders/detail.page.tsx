@@ -34,14 +34,14 @@ export function OrderDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{order.id}</BreadcrumbPage>
+              <BreadcrumbPage>{order.orderNumber}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         <div className="space-y-2">
           <h1 className="break-all text-3xl font-semibold tracking-tight text-foreground">
-            Order {order.id}
+            Order {order.orderNumber}
           </h1>
           <p className="text-sm text-muted-foreground md:text-base">
             Review customer, delivery, item, and fulfilment details.

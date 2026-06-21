@@ -38,11 +38,10 @@ function addressLines(order: Order) {
 
 type OrderDetailProps = {
   order: Order;
-  orderLabel?: string;
 };
 
-export function OrderDetail({ order, orderLabel }: OrderDetailProps) {
-  const displayReference = orderLabel ?? order.id;
+export function OrderDetail({ order }: OrderDetailProps) {
+  const displayReference = order.orderNumber;
 
   return (
     <StorefrontPage

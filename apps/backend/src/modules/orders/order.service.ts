@@ -96,7 +96,7 @@ function serializeOrderHistoryItem(order: OrderRecord): OrderHistoryItem {
 
   return {
     id,
-    reference: id,
+    reference: order.orderNumber,
     status: order.status,
     total: order.total,
     itemCount: order.items.reduce((total, item) => total + item.quantity, 0),
@@ -119,7 +119,7 @@ async function serializeAdminOrderListItem(
 
   return {
     id: serializedOrder.id,
-    reference: serializedOrder.id,
+    reference: serializedOrder.orderNumber,
     customerName: `${serializedOrder.customer.firstName} ${serializedOrder.customer.lastName}`,
     customerEmail: serializedOrder.customer.email,
     status: serializedOrder.status,
@@ -394,8 +394,8 @@ async function sendOrderConfirmationEmail(order: Order) {
   try {
     const renderedEmail = await renderRegisteredEmailTemplate({
       emailType: "Order placed",
-      preheader: `We have received order ${order.id}.`,
-      subject: `Order confirmation ${order.id}`,
+      preheader: `We have received order ${order.orderNumber}.`,
+      subject: `Order confirmation ${order.orderNumber}`,
       template: orderEmailRegistry.orderConfirmation,
       htmlValues: {
         orderItemsHtml: renderOrderItemRows(order),
@@ -407,7 +407,7 @@ async function sendOrderConfirmationEmail(order: Order) {
         itemCount: String(getTotalItemCount(order)),
         itemSummary: formatItemSummary(order),
         orderLink: resolveStorefrontUrl(`/orders/${order.id}`),
-        orderReference: order.id,
+        orderReference: order.orderNumber,
         orderStatus: formatStatus(order.status),
         orderTotal: formatCurrency(order.total),
       },
@@ -443,8 +443,8 @@ async function sendOrderStatusUpdateEmail(
   try {
     const renderedEmail = await renderRegisteredEmailTemplate({
       emailType: "Order update",
-      preheader: `Order ${order.id} is now ${statusCopy.label}.`,
-      subject: `Order status update ${order.id}`,
+      preheader: `Order ${order.orderNumber} is now ${statusCopy.label}.`,
+      subject: `Order status update ${order.orderNumber}`,
       template: orderEmailRegistry.orderStatusUpdate,
       htmlValues: {
         orderItemsHtml: renderOrderItemRows(order),
@@ -456,7 +456,7 @@ async function sendOrderStatusUpdateEmail(
         itemCount: String(getTotalItemCount(order)),
         itemSummary: formatItemSummary(order),
         orderLink: resolveStorefrontUrl(`/orders/${order.id}`),
-        orderReference: order.id,
+        orderReference: order.orderNumber,
         orderTotal: formatCurrency(order.total),
         statusHeading: statusCopy.heading,
         statusIntro: statusCopy.intro,

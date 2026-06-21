@@ -139,7 +139,7 @@ export async function storefrontOrdersRoutes(app: FastifyInstance) {
         const order = await confirmStripeCheckoutOrder(orderId, sessionId);
 
         return reply.redirect(
-          `/checkout?payment=success&orderId=${encodeURIComponent(order.id)}`,
+          `/checkout?payment=success&orderId=${encodeURIComponent(order.id)}&orderNumber=${encodeURIComponent(order.orderNumber)}`,
         );
       } catch (error) {
         handleCheckoutRouteError(error);
