@@ -10,6 +10,7 @@ import {
 } from "@otbt/types";
 
 export interface OrderDocument {
+  orderNumber: string;
   customer: OrderCustomerSnapshot;
   deliveryAddress: OrderDeliveryAddress;
   items: OrderItem[];
@@ -76,6 +77,7 @@ const orderPaymentSchema = new Schema<OrderPayment>(
 
 const orderSchema = new Schema<OrderDocument>(
   {
+    orderNumber: { type: String, required: true, trim: true, unique: true },
     customer: { type: orderCustomerSchema, required: true },
     deliveryAddress: { type: orderDeliveryAddressSchema, required: true },
     items: {

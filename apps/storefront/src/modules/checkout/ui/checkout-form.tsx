@@ -111,6 +111,12 @@ export function CheckoutForm() {
       ? searchParams.get("orderId")
       : null;
   });
+  const [completedOrderNumber] = useState(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get("payment") === "success"
+      ? searchParams.get("orderNumber")
+      : null;
+  });
   const [cancelledOrderId] = useState(() => {
     const searchParams = new URLSearchParams(window.location.search);
     return searchParams.get("payment") === "cancelled"
@@ -172,9 +178,9 @@ export function CheckoutForm() {
           <StorefrontEmptyState
             description={
               <>
-                Your order reference is{" "}
+                Your order number is{" "}
                 <span className="font-medium text-foreground">
-                  {completedOrderId}
+                  {completedOrderNumber ?? completedOrderId}
                 </span>
                 . We will prepare your arrangement for delivery.
               </>
@@ -183,11 +189,22 @@ export function CheckoutForm() {
             label="Payment received"
             title="Your order has been placed."
             actions={
-              <Button asChild className="h-10 min-w-[168px] px-4">
-                <Link to="/" unstyled>
-                  Browse catalogue
-                </Link>
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button asChild className="h-10 min-w-[140px] px-4">
+                  <Link to={`/orders/${completedOrderId}`} unstyled>
+                    View order
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  className="h-10 min-w-[140px] px-4"
+                  variant="outline"
+                >
+                  <Link to="/" unstyled>
+                    Browse catalogue
+                  </Link>
+                </Button>
+              </div>
             }
           />
         </div>

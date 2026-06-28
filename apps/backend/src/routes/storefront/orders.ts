@@ -141,7 +141,7 @@ export async function storefrontOrdersRoutes(app: FastifyInstance) {
         const order = await confirmCheckoutOrder(orderId, sessionId);
 
         return reply.redirect(
-          `/checkout?payment=success&orderId=${encodeURIComponent(order.id)}`,
+          `/checkout?payment=success&orderId=${encodeURIComponent(order.id)}&orderNumber=${encodeURIComponent(order.orderNumber)}`,
         );
       } catch (error) {
         handleCheckoutRouteError(error);
