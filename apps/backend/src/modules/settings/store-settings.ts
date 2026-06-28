@@ -134,6 +134,15 @@ export class StoreSettings {
     return settings.orderNumberFormat;
   }
 
+  async getProductBrowsingSettings() {
+    const settings = await this.getSettings();
+
+    return {
+      productBrowsingMode: settings.productBrowsingMode,
+      productBrowsingPageSize: settings.productBrowsingPageSize,
+    };
+  }
+
   async updateSettings(input: StoreSettingsUpdate) {
     const update = normalizeSettingsUpdate(input);
 

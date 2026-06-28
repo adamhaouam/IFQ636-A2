@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router";
 
+import type { ProductListItem } from "@otbt/types";
 import { Button } from "@otbt/ui";
 import { Link } from "@otbt/web";
 
@@ -10,7 +11,6 @@ import { getSessionToken } from "../../../modules/customers/auth/customer-auth.s
 import { ProductCard } from "../../../modules/products/ui/product-card";
 import { usePublicProductsQuery } from "../../../modules/products/products.query";
 
-const PRODUCT_PAGE_SIZE = 12;
 const COLLECTION_SECTION_ID = "catalogue";
 
 function scrollToCollection() {
@@ -23,24 +23,29 @@ function scrollToCollection() {
 export function HomePage() {
   const location = useLocation();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [visibleProductCount, setVisibleProductCount] =
-    useState(PRODUCT_PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [infiniteProducts, setInfiniteProducts] = useState<ProductListItem[]>([]);
   const hasSessionToken = Boolean(getSessionToken());
   const currentCustomerQuery = useQuery(currentCustomerQueryOptions());
-  const { data, isError, isLoading } = usePublicProductsQuery();
+  const { data, isError, isFetching, isLoading } = usePublicProductsQuery({
+    page: currentPage,
+  });
   const heroAccountAction =
     hasSessionToken && !currentCustomerQuery.isError
       ? { label: "Orders", to: "/orders" }
       : { label: "Sign in", to: "/login" };
-  const allProducts = data?.products ?? [];
-  const products = useMemo(
-    () => allProducts.slice(0, visibleProductCount),
-    [allProducts, visibleProductCount],
-  );
-  const hasMoreProducts = products.length < allProducts.length;
+  const productBrowsingMode = data?.settings.productBrowsingMode ?? "infinite";
+  const pagination = data?.pagination;
+  const hasMultiplePages = Boolean(pagination && pagination.totalPages > 1);
+  const products =
+    productBrowsingMode === "paged" ? data?.products ?? [] : infiniteProducts;
 
-  function showMoreProducts() {
-    setVisibleProductCount((currentCount) => currentCount + PRODUCT_PAGE_SIZE);
+  function loadNextPage() {
+    if (isFetching || !pagination?.hasNextPage) {
+      return;
+    }
+
+    setCurrentPage((page) => page + 1);
   }
 
   useEffect(() => {
@@ -50,16 +55,40 @@ export function HomePage() {
   }, [location.hash]);
 
   useEffect(() => {
+    if (!data || productBrowsingMode !== "infinite") {
+      return;
+    }
+
+    setInfiniteProducts((currentProducts) => {
+      if (data.pagination.page === 1) {
+        return data.products;
+      }
+
+      const existingIds = new Set(currentProducts.map((product) => product.id));
+
+      return [
+        ...currentProducts,
+        ...data.products.filter((product) => !existingIds.has(product.id)),
+      ];
+    });
+  }, [data, productBrowsingMode]);
+
+  useEffect(() => {
     const loadMoreElement = loadMoreRef.current;
 
-    if (!loadMoreElement || !hasMoreProducts) {
+    if (
+      !loadMoreElement ||
+      productBrowsingMode !== "infinite" ||
+      !pagination?.hasNextPage ||
+      isFetching
+    ) {
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          showMoreProducts();
+          loadNextPage();
         }
       },
       { rootMargin: "0px" },
@@ -68,7 +97,7 @@ export function HomePage() {
     observer.observe(loadMoreElement);
 
     return () => observer.disconnect();
-  }, [hasMoreProducts, products.length]);
+  }, [isFetching, pagination?.hasNextPage, productBrowsingMode, products.length]);
 
   return (
     <main className="storefront-container px-4 py-4 sm:py-5 md:px-6 lg:py-6">
@@ -125,7 +154,7 @@ export function HomePage() {
             </h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Showing {products.length} of {allProducts.length} products
+            Showing {products.length} of {pagination?.total ?? 0} products
           </p>
         </div>
 
@@ -148,10 +177,34 @@ export function HomePage() {
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-            {hasMoreProducts ? (
+            {productBrowsingMode === "paged" && pagination && hasMultiplePages ? (
+              <div className="mt-8 flex items-center justify-between gap-4">
+                <Button
+                  disabled={pagination.page <= 1 || isFetching}
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  variant="outline"
+                >
+                  Previous
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Page {pagination.page} of {pagination.totalPages}
+                </p>
+                <Button
+                  disabled={!pagination.hasNextPage || isFetching}
+                  onClick={loadNextPage}
+                  variant="outline"
+                >
+                  Next
+                </Button>
+              </div>
+            ) : pagination?.hasNextPage ? (
               <div ref={loadMoreRef} className="mt-8 flex justify-center">
-                <Button onClick={showMoreProducts} variant="outline">
-                  Load more
+                <Button
+                  disabled={isFetching}
+                  onClick={loadNextPage}
+                  variant="outline"
+                >
+                  {isFetching ? "Loading..." : "Load more"}
                 </Button>
               </div>
             ) : null}
