@@ -7,6 +7,14 @@ services:
       - "${SMTP_PORT:-1025}:1025"
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
   nginx:
     image: nginx:1.27-alpine
     extra_hosts:
@@ -20,3 +28,6 @@ services:
     volumes:
       - ./.docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     restart: unless-stopped
+
+volumes:
+  redis-data:

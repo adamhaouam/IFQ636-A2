@@ -1,26 +1,24 @@
 name: restart
 
-# Temporarily disabled.
-#
-# on:
-#   workflow_dispatch:
-#
-# permissions: {}
-#
-# jobs:
-#   restart:
-#     if: github.repository == 'melchoy/IFQ636-A2'
-#     environment: production
-#     runs-on:
-#       - self-hosted
-#       - Linux
-#       - X64
-#       - otbt
-#
-#     steps:
-#       - name: Restart backend
-#         env:
-#           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
-#           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-#           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-#         run: sudo -n -u otbt /usr/local/bin/deploy/otbt-restart
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  restart:
+    if: github.repository == 'melchoy/IFQ636-A2'
+    environment: production
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - otbt
+
+    steps:
+      - name: Restart backend
+        env:
+          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        run: sudo -n -u otbt /usr/local/bin/deploy/otbt-restart

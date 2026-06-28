@@ -14,6 +14,7 @@
     "dev:backend": "pnpm --filter @otbt/backend dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @otbt/backend test",
     "verify": "pnpm run typecheck && pnpm run build"
   }
 }
