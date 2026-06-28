@@ -2,9 +2,9 @@ import { model, Schema } from "mongoose";
 
 import {
   ORDER_NUMBER_FORMATS,
-  PAGINATION_MODES,
+  PRODUCT_BROWSING_MODES,
   type OrderNumberFormat,
-  type PaginationMode,
+  type ProductBrowsingMode,
 } from "@otbt/types";
 
 export const STORE_SETTINGS_KEY = "store";
@@ -12,8 +12,8 @@ export const STORE_SETTINGS_KEY = "store";
 export interface SettingsRecordDocument {
   key: typeof STORE_SETTINGS_KEY;
   orderNumberFormat: OrderNumberFormat;
-  paginationMode: PaginationMode;
-  defaultPageSize: number;
+  productBrowsingMode: ProductBrowsingMode;
+  productBrowsingPageSize: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,13 +33,13 @@ const settingsRecordSchema = new Schema<SettingsRecordDocument>(
       required: true,
       type: String,
     },
-    paginationMode: {
+    productBrowsingMode: {
       default: "infinite",
-      enum: [...PAGINATION_MODES],
+      enum: [...PRODUCT_BROWSING_MODES],
       required: true,
       type: String,
     },
-    defaultPageSize: {
+    productBrowsingPageSize: {
       default: 24,
       max: 100,
       min: 1,

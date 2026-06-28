@@ -23,11 +23,11 @@ describe("StoreSettings", () => {
     const settings = StoreSettings.getInstance();
 
     try {
-      await settings.updateSettings({ defaultPageSize: 0 });
+      await settings.updateSettings({ productBrowsingPageSize: 0 });
       throw new Error("Expected validation to fail");
     } catch (error) {
       expect((error as Error).message).to.equal(
-        "Default page size must be between 1 and 100",
+        "Product browsing page size must be between 1 and 100",
       );
     }
   });

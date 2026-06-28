@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import {
   Card,
   CardContent,
@@ -10,9 +8,18 @@ import {
   Select,
   cn,
 } from "@otbt/ui";
+import type { OrderNumberFormat, ProductBrowsingMode } from "@otbt/types";
 
-type OrderNumberFormat = "sequential" | "date_prefixed";
-type ProductBrowsingMode = "infinite" | "paged";
+export interface SettingsFormValues {
+  orderNumberFormat: OrderNumberFormat;
+  productBrowsingMode: ProductBrowsingMode;
+  productBrowsingPageSize: number;
+}
+
+interface SettingsFormProps {
+  settings: SettingsFormValues;
+  onSettingsChange: (settings: SettingsFormValues) => void;
+}
 
 const orderNumberOptions: Array<{
   value: OrderNumberFormat;
@@ -34,15 +41,10 @@ const orderNumberOptions: Array<{
   },
 ];
 
-export function SettingsForm() {
-  const [orderNumberFormat, setOrderNumberFormat] =
-    useState<OrderNumberFormat>("sequential");
-  const [productBrowsingMode, setProductBrowsingMode] =
-    useState<ProductBrowsingMode>("infinite");
-  const [productBrowsingPageSize, setProductBrowsingPageSize] = useState(24);
-
+export function SettingsForm({ settings, onSettingsChange }: SettingsFormProps) {
   const selectedExample =
-    orderNumberOptions.find((option) => option.value === orderNumberFormat)?.example ??
+    orderNumberOptions.find((option) => option.value === settings.orderNumberFormat)
+      ?.example ??
     "ORD-000123";
 
   return (
@@ -59,15 +61,21 @@ export function SettingsForm() {
               <label
                 className={cn(
                   "flex cursor-pointer gap-3 rounded-md border bg-background p-4 transition-colors",
-                  orderNumberFormat === option.value && "border-primary bg-muted",
+                  settings.orderNumberFormat === option.value &&
+                    "border-primary bg-muted",
                 )}
                 key={option.value}
               >
                 <input
-                  checked={orderNumberFormat === option.value}
+                  checked={settings.orderNumberFormat === option.value}
                   className="mt-1 size-4 accent-primary"
                   name="orderNumberFormat"
-                  onChange={() => setOrderNumberFormat(option.value)}
+                  onChange={() =>
+                    onSettingsChange({
+                      ...settings,
+                      orderNumberFormat: option.value,
+                    })
+                  }
                   type="radio"
                   value={option.value}
                 />
@@ -107,9 +115,12 @@ export function SettingsForm() {
             <span className="text-sm font-medium text-foreground">Browsing mode</span>
             <Select
               onChange={(event) =>
-                setProductBrowsingMode(event.target.value as ProductBrowsingMode)
+                onSettingsChange({
+                  ...settings,
+                  productBrowsingMode: event.target.value as ProductBrowsingMode,
+                })
               }
-              value={productBrowsingMode}
+              value={settings.productBrowsingMode}
             >
               <option value="infinite">Infinite scroll</option>
               <option value="paged">Paged</option>
@@ -121,10 +132,13 @@ export function SettingsForm() {
             <Input
               min={1}
               onChange={(event) =>
-                setProductBrowsingPageSize(Number(event.target.value))
+                onSettingsChange({
+                  ...settings,
+                  productBrowsingPageSize: Number(event.target.value),
+                })
               }
               type="number"
-              value={productBrowsingPageSize}
+              value={settings.productBrowsingPageSize}
             />
           </label>
         </CardContent>
