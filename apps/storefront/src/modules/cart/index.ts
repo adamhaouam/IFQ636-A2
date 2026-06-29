@@ -5,6 +5,7 @@ export type {
   CartSummary,
 } from "./cart.types";
 export { useCart } from "./cart.hooks";
+export { useCartQuoteQuery } from "./cart.query";
 export {
   addCartItem,
   clearCartItems,

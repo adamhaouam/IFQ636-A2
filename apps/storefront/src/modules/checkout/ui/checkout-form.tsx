@@ -7,7 +7,7 @@ import type { CheckoutRequest } from "@otbt/types";
 import { Button, Input } from "@otbt/ui";
 import { Link } from "@otbt/web";
 
-import { clearCartItems, useCart } from "../../cart";
+import { clearCartItems, useCart, useCartQuoteQuery } from "../../cart";
 import { ProductImageWell } from "../../common/product-image-well";
 import { StorefrontEmptyState } from "../../common/storefront-empty-state";
 import { StorefrontPage } from "../../common/storefront-page";
@@ -101,6 +101,12 @@ function getErrorMessage(error: unknown) {
 
 export function CheckoutForm() {
   const cart = useCart();
+  const cartQuoteQuery = useCartQuoteQuery(cart.items);
+  const quote = cartQuoteQuery.data;
+  const quotedItemsByProductId = new Map(
+    quote?.items.map((item) => [item.productId, item]) ?? [],
+  );
+  const total = quote?.total ?? cart.subtotal;
   const checkoutMutation = useCheckoutMutation();
   const currentCustomerQuery = useQuery(currentCustomerQueryOptions());
   const currentCustomer = currentCustomerQuery.data?.customer;
@@ -441,36 +447,52 @@ export function CheckoutForm() {
             Order summary
           </h2>
           <div className="mt-5 divide-y border-y">
-            {cart.items.map((item) => (
-              <div className="py-4" key={item.productId}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <ProductImageWell
-                      alt={item.name}
-                      className="size-[50px] rounded-[5px]"
-                      imageClassName="size-[42px]"
-                      imageUrl={item.imageUrl}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {item.name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Qty {item.quantity}
-                      </p>
+            {cart.items.map((item) => {
+              const quotedItem = quotedItemsByProductId.get(item.productId);
+              const displayLineTotal = quotedItem?.lineTotal ?? item.lineTotal;
+              const hasDiscount = Boolean(
+                quotedItem?.membershipDiscountApplied &&
+                  quotedItem.basePrice > quotedItem.finalPrice,
+              );
+
+              return (
+                <div className="py-4" key={item.productId}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <ProductImageWell
+                        alt={item.name}
+                        className="size-[50px] rounded-[5px]"
+                        imageClassName="size-[42px]"
+                        imageUrl={item.imageUrl}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {item.name}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Qty {item.quantity}
+                          {hasDiscount && quotedItem ? (
+                            <>
+                              {" "}
+                              &middot; Member price{" "}
+                              {formatPrice(quotedItem.finalPrice)}
+                            </>
+                          ) : null}
+                        </p>
+                      </div>
                     </div>
+                    <p className="shrink-0 text-sm font-semibold text-foreground">
+                      {formatPrice(displayLineTotal)}
+                    </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold text-foreground">
-                    {formatPrice(item.lineTotal)}
-                  </p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-5 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Total</span>
             <span className="text-base font-semibold text-foreground">
-              {formatPrice(cart.subtotal)}
+              {formatPrice(total)}
             </span>
           </div>
           {cancelledOrderId ? (

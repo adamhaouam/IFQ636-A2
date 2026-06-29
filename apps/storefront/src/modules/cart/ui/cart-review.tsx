@@ -11,6 +11,7 @@ import {
   removeCartItem,
   updateCartItemQuantity,
   useCart,
+  useCartQuoteQuery,
 } from "..";
 
 const cartBreadcrumbs = [
@@ -27,6 +28,12 @@ function formatPrice(price: number) {
 
 export function CartReview() {
   const cart = useCart();
+  const cartQuoteQuery = useCartQuoteQuery(cart.items);
+  const quote = cartQuoteQuery.data;
+  const quotedItemsByProductId = new Map(
+    quote?.items.map((item) => [item.productId, item]) ?? [],
+  );
+  const subtotal = quote?.subtotal ?? cart.subtotal;
 
   if (cart.items.length === 0) {
     return (
@@ -56,83 +63,104 @@ export function CartReview() {
         <section>
           <h1 className="text-4xl font-semibold text-foreground">Your cart</h1>
           <div className="mt-8 divide-y rounded-lg border bg-card">
-            {cart.items.map((item) => (
-              <article
-                className="grid gap-4 p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto]"
-                key={item.productId}
-              >
-                <ProductImageWell
-                  alt={item.name}
-                  className="size-24 rounded-md"
-                  imageClassName="size-[74px]"
-                  imageUrl={item.imageUrl}
-                />
+            {cart.items.map((item) => {
+              const quotedItem = quotedItemsByProductId.get(item.productId);
+              const displayPrice = quotedItem?.finalPrice ?? item.price;
+              const displayLineTotal = quotedItem?.lineTotal ?? item.lineTotal;
+              const hasDiscount = Boolean(
+                quotedItem?.membershipDiscountApplied &&
+                  quotedItem.basePrice > quotedItem.finalPrice,
+              );
 
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-foreground">
-                    {item.name}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {formatPrice(item.price)}
-                  </p>
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <Button
-                      onClick={() =>
-                        updateCartItemQuantity(item.productId, item.quantity - 1)
-                      }
-                      size="icon"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Minus className="size-4" />
-                      <span className="sr-only">Decrease quantity</span>
-                    </Button>
-                    <Input
-                      aria-label={`Quantity for ${item.name}`}
-                      className="h-9 w-16 text-center"
-                      min="1"
-                      onChange={(event) => {
-                        const nextQuantity = Number(event.currentTarget.value);
+              return (
+                <article
+                  className="grid gap-4 p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto]"
+                  key={item.productId}
+                >
+                  <ProductImageWell
+                    alt={item.name}
+                    className="size-24 rounded-md"
+                    imageClassName="size-[74px]"
+                    imageUrl={item.imageUrl}
+                  />
 
-                        if (
-                          !Number.isFinite(nextQuantity) ||
-                          nextQuantity < 1
-                        ) {
-                          return;
+                  <div className="min-w-0">
+                    <h2 className="text-base font-semibold text-foreground">
+                      {item.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatPrice(displayPrice)}
+                      {hasDiscount && quotedItem ? (
+                        <span className="ml-2 text-xs line-through">
+                          {formatPrice(quotedItem.basePrice)}
+                        </span>
+                      ) : null}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <Button
+                        onClick={() =>
+                          updateCartItemQuantity(
+                            item.productId,
+                            item.quantity - 1,
+                          )
                         }
+                        size="icon"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Minus className="size-4" />
+                        <span className="sr-only">Decrease quantity</span>
+                      </Button>
+                      <Input
+                        aria-label={`Quantity for ${item.name}`}
+                        className="h-9 w-16 text-center"
+                        min="1"
+                        onChange={(event) => {
+                          const nextQuantity = Number(event.currentTarget.value);
 
-                        updateCartItemQuantity(item.productId, nextQuantity);
-                      }}
-                      type="number"
-                      value={item.quantity}
-                    />
-                    <Button
-                      onClick={() =>
-                        updateCartItemQuantity(item.productId, item.quantity + 1)
-                      }
-                      size="icon"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Plus className="size-4" />
-                      <span className="sr-only">Increase quantity</span>
-                    </Button>
-                    <Button
-                      onClick={() => removeCartItem(item.productId)}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Trash2 className="size-4" />
-                      Remove
-                    </Button>
+                          if (
+                            !Number.isFinite(nextQuantity) ||
+                            nextQuantity < 1
+                          ) {
+                            return;
+                          }
+
+                          updateCartItemQuantity(item.productId, nextQuantity);
+                        }}
+                        type="number"
+                        value={item.quantity}
+                      />
+                      <Button
+                        onClick={() =>
+                          updateCartItemQuantity(
+                            item.productId,
+                            item.quantity + 1,
+                          )
+                        }
+                        size="icon"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Plus className="size-4" />
+                        <span className="sr-only">Increase quantity</span>
+                      </Button>
+                      <Button
+                        onClick={() => removeCartItem(item.productId)}
+                        type="button"
+                        variant="ghost"
+                      >
+                        <Trash2 className="size-4" />
+                        Remove
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                <p className="text-sm font-semibold text-foreground">
-                  {formatPrice(item.lineTotal)}
-                </p>
-              </article>
-            ))}
+                  <p className="text-sm font-semibold text-foreground">
+                    {formatPrice(displayLineTotal)}
+                  </p>
+                </article>
+              );
+            })}
           </div>
         </section>
 
@@ -141,7 +169,7 @@ export function CartReview() {
           <div className="mt-5 flex items-center justify-between border-t pt-4">
             <span className="text-sm text-muted-foreground">Subtotal</span>
             <span className="text-base font-semibold text-foreground">
-              {formatPrice(cart.subtotal)}
+              {formatPrice(subtotal)}
             </span>
           </div>
           <Button asChild className="mt-5 w-full">
