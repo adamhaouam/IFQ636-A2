@@ -11,6 +11,7 @@ import {
 import type { OrderNumberFormat, ProductBrowsingMode } from "@otbt/types";
 
 export interface SettingsFormValues {
+  membershipDiscountRate: number;
   orderNumberFormat: OrderNumberFormat;
   productBrowsingMode: ProductBrowsingMode;
   productBrowsingPageSize: number;
@@ -100,6 +101,39 @@ export function SettingsForm({ settings, onSettingsChange }: SettingsFormProps) 
               Customers and staff use this reference to identify an order.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Member pricing</CardTitle>
+          <CardDescription>
+            Set the discount used for eligible products when a member checks out.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 md:max-w-48">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-foreground">Discount rate</span>
+            <div className="relative">
+              <Input
+                className="pr-8"
+                max={100}
+                min={0}
+                onChange={(event) =>
+                  onSettingsChange({
+                    ...settings,
+                    membershipDiscountRate: Number(event.target.value),
+                  })
+                }
+                step={1}
+                type="number"
+                value={settings.membershipDiscountRate}
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                %
+              </span>
+            </div>
+          </label>
         </CardContent>
       </Card>
 

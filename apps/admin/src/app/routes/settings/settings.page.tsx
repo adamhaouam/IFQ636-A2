@@ -20,6 +20,7 @@ export function SettingsPage() {
   const settings = useStoreSettings();
   const updateSettings = useUpdateStoreSettings();
   const [draft, setDraft] = useState<SettingsFormValues>(() => ({
+    membershipDiscountRate: settings.membershipDiscountRate,
     orderNumberFormat: settings.orderNumberFormat,
     productBrowsingMode: settings.productBrowsingMode,
     productBrowsingPageSize: settings.productBrowsingPageSize,
@@ -29,11 +30,13 @@ export function SettingsPage() {
 
   useEffect(() => {
     setDraft({
+      membershipDiscountRate: settings.membershipDiscountRate,
       orderNumberFormat: settings.orderNumberFormat,
       productBrowsingMode: settings.productBrowsingMode,
       productBrowsingPageSize: settings.productBrowsingPageSize,
     });
   }, [
+    settings.membershipDiscountRate,
     settings.orderNumberFormat,
     settings.productBrowsingMode,
     settings.productBrowsingPageSize,
@@ -50,6 +53,7 @@ export function SettingsPage() {
       ]);
 
       setDraft({
+        membershipDiscountRate: response.settings.membershipDiscountRate,
         orderNumberFormat: response.settings.orderNumberFormat,
         productBrowsingMode: response.settings.productBrowsingMode,
         productBrowsingPageSize: response.settings.productBrowsingPageSize,
