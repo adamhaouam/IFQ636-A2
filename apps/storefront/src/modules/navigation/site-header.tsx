@@ -22,8 +22,8 @@ import {
 } from "@otbt/ui";
 
 import {
-  currentCustomerQueryKey,
   currentCustomerQueryOptions,
+  invalidateCustomerSessionQueries,
   useLogoutCustomerMutation,
 } from "../customers/auth/customer-auth.query";
 import {
@@ -142,7 +142,7 @@ export function SiteHeader() {
     }
 
     clearSessionToken();
-    queryClient.removeQueries({ queryKey: currentCustomerQueryKey });
+    void invalidateCustomerSessionQueries(queryClient);
   }, [currentCustomerQuery.isError, hasSessionToken, queryClient]);
 
   async function handleSignOut() {
@@ -150,7 +150,7 @@ export function SiteHeader() {
       await logoutCustomerMutation.mutateAsync();
     } finally {
       clearSessionToken();
-      queryClient.removeQueries({ queryKey: currentCustomerQueryKey });
+      await invalidateCustomerSessionQueries(queryClient);
       navigate("/");
     }
   }

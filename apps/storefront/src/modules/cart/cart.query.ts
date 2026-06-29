@@ -6,9 +6,11 @@ import { storefrontRequest } from "../../lib/http.client";
 import { getSessionToken } from "../../lib/session-token";
 import type { CartItem } from "./cart.types";
 
+export const cartQuoteQueryRootKey = ["cart-quote"] as const;
+
 const cartQuoteQueryKey = (items: CartItem[]) =>
   [
-    "cart-quote",
+    ...cartQuoteQueryRootKey,
     getSessionToken(),
     items.map((item) => ({
       productId: item.productId,

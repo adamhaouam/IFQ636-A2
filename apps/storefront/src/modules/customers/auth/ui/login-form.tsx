@@ -6,6 +6,7 @@ import { Button, Input } from "@otbt/ui";
 
 import {
   currentCustomerQueryKey,
+  invalidateCustomerSessionQueries,
   useLoginCustomerMutation,
 } from "../customer-auth.query";
 import { setSessionToken } from "../customer-auth.storage";
@@ -42,6 +43,7 @@ export function LoginForm() {
       queryClient.setQueryData(currentCustomerQueryKey, {
         customer: response.customer,
       });
+      await invalidateCustomerSessionQueries(queryClient);
       navigate("/");
     } catch {
     }

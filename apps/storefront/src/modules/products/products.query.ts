@@ -8,10 +8,13 @@ type PublicProductsPageParams = {
   page: number;
 };
 
+export const publicProductsQueryRootKey = ["public-products"] as const;
+export const publicProductQueryRootKey = ["public-product"] as const;
+
 const publicProductsQueryKey = (params: PublicProductsPageParams) =>
-  ["public-products", params] as const;
+  [...publicProductsQueryRootKey, params] as const;
 const publicProductQueryKey = (productId: string) =>
-  ["public-product", productId] as const;
+  [...publicProductQueryRootKey, productId] as const;
 
 function toProductSearchParams(params: PublicProductsPageParams) {
   return new URLSearchParams({ page: String(params.page) }).toString();
