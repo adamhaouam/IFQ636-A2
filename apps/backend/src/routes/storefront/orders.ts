@@ -1,4 +1,6 @@
 import type {
+  CartQuoteRequest,
+  CartQuoteResponse,
   CheckoutRequest,
   CheckoutSessionResponse,
   OrderDetailResponse,
@@ -15,6 +17,7 @@ import {
   listOrdersForCustomer,
   markCheckoutCancelled,
   OrderValidationError,
+  quoteCartItems,
 } from "../../modules/orders/order.service.js";
 import { PaymentValidationError } from "../../modules/payments/payment.errors.js";
 
@@ -74,6 +77,25 @@ function parseCheckoutRequest(body: unknown): CheckoutRequest {
   }
 
   return input as CheckoutRequest;
+}
+
+function parseCartQuoteRequest(body: unknown): CartQuoteRequest {
+  const input = body as Partial<CartQuoteRequest>;
+
+  if (
+    !Array.isArray(input.items) ||
+    input.items.length === 0 ||
+    input.items.some(
+      (item) =>
+        !isPresentString(item.productId) ||
+        typeof item.quantity !== "number" ||
+        item.quantity < 1,
+    )
+  ) {
+    throw new OrderValidationError("Cart items are required");
+  }
+
+  return input as CartQuoteRequest;
 }
 
 function getStringQuery(value: unknown) {
@@ -200,9 +222,24 @@ export async function storefrontOrdersRoutes(app: FastifyInstance) {
           checkoutRequest,
           request.customer?.id ?? null,
           resolvePublicOrigin(request),
+          request.customer?.accessLevel ?? null,
         );
 
       reply.status(201);
+      return response;
+    } catch (error) {
+      handleCheckoutRouteError(error);
+    }
+  });
+
+  app.post<{ Body: CartQuoteRequest }>("/quote", async (request) => {
+    try {
+      const quoteRequest = parseCartQuoteRequest(request.body);
+      const response: CartQuoteResponse = await quoteCartItems(
+        quoteRequest.items,
+        request.customer?.accessLevel ?? null,
+      );
+
       return response;
     } catch (error) {
       handleCheckoutRouteError(error);

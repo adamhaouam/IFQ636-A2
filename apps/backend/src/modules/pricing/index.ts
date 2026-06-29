@@ -10,4 +10,6 @@ export {
   ProductPricingService,
   type PriceableProduct,
   type ProductPricingOptions,
+  type ProductPricingSettings,
+  createProductPricingService,
 } from "./product-pricing.service.js";

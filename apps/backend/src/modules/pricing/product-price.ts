@@ -1,15 +1,9 @@
-import type { CustomerAccessLevel } from "@otbt/types";
+import type { CustomerAccessLevel, ProductPriceCalculation } from "@otbt/types";
+
+export type { ProductPriceCalculation };
 
 export interface ProductPriceContext {
   customerAccessLevel?: CustomerAccessLevel | null;
-}
-
-export interface ProductPriceCalculation {
-  basePrice: number;
-  finalPrice: number;
-  discountAmount: number;
-  discountRate: number;
-  membershipDiscountApplied: boolean;
 }
 
 function roundCurrency(value: number) {

@@ -6,6 +6,7 @@ import {
   getProduct,
   listPaginatedProducts,
 } from "../../modules/products/product.service.js";
+import { createProductPricingService } from "../../modules/pricing/index.js";
 import { StoreSettings } from "../../modules/settings/index.js";
 
 type ProductParams = {
@@ -35,6 +36,10 @@ export async function storefrontProductsRoutes(app: FastifyInstance) {
       },
       { page, pageSize },
     );
+    const pricingService = await createProductPricingService();
+    const pricingContext = {
+      customerAccessLevel: request.customer?.accessLevel ?? null,
+    };
     const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
 
     const response: ProductListResponse = {
@@ -44,7 +49,8 @@ export async function storefrontProductsRoutes(app: FastifyInstance) {
         description: product.description,
         imageUrl: product.imageUrl,
         membershipDiscountEnabled: product.membershipDiscountEnabled,
-        price: product.price,
+        price: pricingService.calculateProductPrice(product, pricingContext)
+          .finalPrice,
       })),
       pagination: {
         page,
@@ -69,6 +75,11 @@ export async function storefrontProductsRoutes(app: FastifyInstance) {
       throw new HttpError(404, "Product not found");
     }
 
+    const pricingService = await createProductPricingService();
+    const pricingContext = {
+      customerAccessLevel: request.customer?.accessLevel ?? null,
+    };
+
     const response: ProductDetailResponse = {
       product: {
         id: product.id,
@@ -77,7 +88,8 @@ export async function storefrontProductsRoutes(app: FastifyInstance) {
         description: product.description,
         imageUrl: product.imageUrl,
         membershipDiscountEnabled: product.membershipDiscountEnabled,
-        price: product.price,
+        price: pricingService.calculateProductPrice(product, pricingContext)
+          .finalPrice,
         stock: product.stock,
         status: product.status,
         visibility: product.visibility,

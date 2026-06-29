@@ -26,7 +26,11 @@ export interface OrderItem {
   name: string;
   sku: string;
   imageUrl: string | null;
+  basePrice: number;
   price: number;
+  discountAmount: number;
+  discountRate: number;
+  membershipDiscountApplied: boolean;
   quantity: number;
   lineTotal: number;
 }

@@ -5,6 +5,7 @@ import {
   MembershipDiscountPriceDecorator,
   type ProductPriceContext,
 } from "./product-price.js";
+import { StoreSettings } from "../settings/index.js";
 
 export type PriceableProduct = Pick<
   Product,
@@ -13,6 +14,10 @@ export type PriceableProduct = Pick<
 
 export interface ProductPricingOptions {
   membershipDiscountRate: number;
+}
+
+export interface ProductPricingSettings {
+  getMembershipDiscountRate(): Promise<number>;
 }
 
 export class ProductPricingService {
@@ -37,4 +42,25 @@ export class ProductPricingService {
   ) {
     return this.createProductPrice(product).calculate(context);
   }
+
+  calculateLineTotal(
+    product: PriceableProduct,
+    quantity: number,
+    context: ProductPriceContext = {},
+  ) {
+    const calculation = this.calculateProductPrice(product, context);
+
+    return {
+      ...calculation,
+      lineTotal: Math.round(calculation.finalPrice * quantity * 100) / 100,
+    };
+  }
+}
+
+export async function createProductPricingService(
+  settings: ProductPricingSettings = StoreSettings.getInstance(),
+) {
+  return new ProductPricingService({
+    membershipDiscountRate: await settings.getMembershipDiscountRate(),
+  });
 }
