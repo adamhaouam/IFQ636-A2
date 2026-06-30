@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyError, FastifyInstance } from "fastify";
 
 export class HttpError extends Error {
   constructor(
@@ -10,7 +10,7 @@ export class HttpError extends Error {
 }
 
 export function registerErrorHandler(app: FastifyInstance) {
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError | HttpError, _request, reply) => {
     if (error instanceof HttpError) {
       reply.status(error.status).send({ error: error.message });
       return;
