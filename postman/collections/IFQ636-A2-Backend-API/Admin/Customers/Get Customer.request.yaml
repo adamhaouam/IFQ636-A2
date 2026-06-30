@@ -1,0 +1,23 @@
+$kind: http-request
+name: Get Customer
+method: GET
+url: '{{baseUrl}}/api/admin/customers/{{customerId}}'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has customer with expected properties", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("customer");
+          pm.expect(json.customer).to.have.property("id");
+          pm.expect(json.customer).to.have.property("email");
+      });

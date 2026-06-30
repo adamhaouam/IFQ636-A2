@@ -1,0 +1,32 @@
+$kind: http-request
+name: List Notifications
+method: GET
+url: '{{baseUrl}}/api/admin/notifications'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+queryParams:
+  - key: filter
+    value: all
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has notifications array and summary", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("notifications");
+          pm.expect(json.notifications).to.be.an("array");
+          pm.expect(json).to.have.property("summary");
+      });
+      const json = pm.response.json();
+      if (json.notifications && json.notifications.length > 0) {
+          pm.collectionVariables.set("notificationId", json.notifications[0].id);
+          console.log("notificationId saved: " + json.notifications[0].id);
+      }

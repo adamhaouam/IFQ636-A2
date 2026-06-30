@@ -1,0 +1,33 @@
+$kind: http-request
+name: Customer Login
+method: POST
+url: "{{baseUrl}}/api/storefront/auth/login"
+order: 1000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "customer@example.com",
+      "password": "password"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has token and customer info", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("token");
+          pm.expect(json).to.have.property("customer");
+          pm.expect(json.customer).to.have.property("id");
+          pm.expect(json.customer).to.have.property("email");
+      });
+      const json = pm.response.json();
+      if (json.token) {
+          pm.collectionVariables.set("customerToken", json.token);
+          console.log("Customer token saved to collection variable.");
+      }
+    language: text/javascript

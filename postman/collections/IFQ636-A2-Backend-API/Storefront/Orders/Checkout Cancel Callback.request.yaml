@@ -1,0 +1,22 @@
+$kind: http-request
+name: Checkout Cancel Callback
+method: GET
+url: '{{baseUrl}}/api/storefront/orders/checkout/:paymentMethod/cancel'
+order: 5000
+pathVariables:
+  - key: paymentMethod
+    value: stripe
+queryParams:
+  - key: orderId
+    value: '{{orderId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 302 redirect", function () {
+          pm.response.to.have.status(302);
+      });
+      pm.test("Redirects to cancel page", function () {
+          const location = pm.response.headers.get("Location");
+          pm.expect(location).to.include("payment=cancelled");
+      });

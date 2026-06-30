@@ -1,0 +1,29 @@
+$kind: http-request
+name: Upload Product Image
+method: POST
+url: "{{baseUrl}}/api/admin/products/{{productId}}/images"
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: '/home/polar/repos/IFQ636-A2/apps/storefront/public/flowers.png'
+      contentType: image/png
+      disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response has imageUrl", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("imageUrl");
+          pm.expect(json.imageUrl).to.be.a("string");
+      });
+    language: text/javascript

@@ -1,0 +1,17 @@
+$kind: http-request
+name: Customer Logout
+method: POST
+url: '{{baseUrl}}/api/storefront/auth/logout'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{customerToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 204", function () {
+          pm.response.to.have.status(204);
+      });

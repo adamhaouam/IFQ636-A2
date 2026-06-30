@@ -1,0 +1,32 @@
+$kind: http-request
+name: Register Customer
+method: POST
+url: '{{baseUrl}}/api/storefront/customers'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john.smith@example.com",
+      "password": "securepassword123"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response has customer with expected properties", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("customer");
+          pm.expect(json.customer).to.have.property("id");
+          pm.expect(json.customer).to.have.property("email");
+          pm.expect(json.customer).to.have.property("firstName");
+          pm.expect(json.customer).to.have.property("lastName");
+      });

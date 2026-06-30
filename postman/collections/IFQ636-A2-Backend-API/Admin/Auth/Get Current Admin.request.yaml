@@ -1,0 +1,24 @@
+$kind: http-request
+name: Get Current Admin
+method: GET
+url: '{{baseUrl}}/api/admin/auth/me'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has admin id and email", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("id");
+          pm.expect(json).to.have.property("email");
+          pm.expect(json.id).to.be.a("string");
+          pm.expect(json.email).to.be.a("string");
+      });

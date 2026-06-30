@@ -1,0 +1,32 @@
+$kind: http-request
+name: Admin Login
+method: POST
+url: "{{baseUrl}}/api/admin/auth/login"
+order: 1000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "email": "admin@example.com",
+        "password": "password"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has token and admin info", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("token");
+          pm.expect(json).to.have.property("id");
+          pm.expect(json).to.have.property("email");
+      });
+      const json = pm.response.json();
+      if (json.token) {
+          pm.collectionVariables.set("adminToken", json.token);
+          console.log("Admin token saved to collection variable.");
+      }
+    language: text/javascript

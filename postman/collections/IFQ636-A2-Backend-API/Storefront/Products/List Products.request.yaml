@@ -1,0 +1,22 @@
+$kind: http-request
+name: List Products
+method: GET
+url: '{{baseUrl}}/api/storefront/products'
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has products array", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("products");
+          pm.expect(json.products).to.be.an("array");
+      });
+      const json = pm.response.json();
+      if (json.products && json.products.length > 0) {
+          pm.collectionVariables.set("productId", json.products[0].id);
+          console.log("productId saved: " + json.products[0].id);
+      }
