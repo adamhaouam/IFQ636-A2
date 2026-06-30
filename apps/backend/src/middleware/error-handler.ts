@@ -11,9 +11,13 @@ export class HttpError extends Error {
 
 export function registerErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, _request, reply) => {
-    const status = error instanceof HttpError ? error.status : 500;
-    const message =
-      error instanceof HttpError ? error.message : "Unexpected server error";
+    if (error instanceof HttpError) {
+      reply.status(error.status).send({ error: error.message });
+      return;
+    }
+
+    const status = error.statusCode && error.statusCode < 500 ? error.statusCode : 500;
+    const message = status < 500 ? error.message : "Unexpected server error";
 
     reply.status(status).send({ error: message });
   });

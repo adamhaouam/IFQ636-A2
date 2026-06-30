@@ -42,6 +42,6 @@ export async function storefrontAuthRoutes(app: FastifyInstance) {
   });
 
   app.post("/logout", { preHandler: requireCustomer }, async (_request, reply) => {
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 }

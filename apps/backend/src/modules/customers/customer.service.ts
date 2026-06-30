@@ -1,4 +1,5 @@
 import type { Customer, CustomerUpdate } from "@otbt/types";
+import { isValidObjectId } from "mongoose";
 
 import { HttpError } from "../../middleware/error-handler.js";
 import { sendEmail } from "../email/email.service.js";
@@ -123,6 +124,10 @@ export async function listCustomers(): Promise<Customer[]> {
 }
 
 export async function getCustomer(customerId: string): Promise<Customer | null> {
+  if (!isValidObjectId(customerId)) {
+    return null;
+  }
+
   const customer = await CustomerModel.findById(customerId).exec();
 
   return customer ? serializeCustomer(customer) : null;
@@ -132,6 +137,10 @@ export async function updateCustomer(
   customerId: string,
   customerUpdate: CustomerUpdate,
 ): Promise<Customer | null> {
+  if (!isValidObjectId(customerId)) {
+    return null;
+  }
+
   const update: CustomerUpdate = {};
 
   if (customerUpdate.firstName !== undefined) {
