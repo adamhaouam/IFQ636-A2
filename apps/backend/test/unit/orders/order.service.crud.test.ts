@@ -416,3 +416,69 @@ describe("order.service CRUD", () => {
     });
   });
 });
+
+describe("order lifecycle service", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("rejects invalid checkout cancellation input", async () => {
+    try {
+      await markCheckoutCancelled("not-an-object-id");
+      expect.fail("expected markCheckoutCancelled to throw");
+    } catch (error) {
+      expect(error).to.be.instanceOf(OrderValidationError);
+    }
+  });
+
+  it("marks a pending checkout as cancelled", async () => {
+    const updateOneStub = sinon
+      .stub(OrderModel, "updateOne")
+      .returns(fakeQuery(undefined) as never);
+
+    await markCheckoutCancelled(ORDER_ID);
+
+    const [filter, update] = updateOneStub.firstCall.args as unknown as [
+      Record<string, unknown>,
+      { $set: Record<string, unknown> },
+    ];
+
+    expect(filter).to.deep.equal({ _id: ORDER_ID, "payment.status": "pending" });
+    expect(update).to.deep.equal({ $set: { "payment.status": "failed" } });
+  });
+
+  it("returns no order history for a blank customer id", async () => {
+    const findStub = sinon.stub(OrderModel, "find");
+
+    const orders = await listOrdersForCustomer("   ");
+
+    expect(orders).to.deep.equal([]);
+    expect(findStub.called).to.equal(false);
+  });
+
+  it("fetches an order only when it belongs to the customer", async () => {
+    const findOneStub = sinon
+      .stub(OrderModel, "findOne")
+      .returns(fakeQuery(createOrderDocument()) as never);
+
+    await getOrderForCustomer(ORDER_ID, "customer-1");
+
+    expect((findOneStub.firstCall.args as unknown[])[0]).to.deep.equal({
+      _id: ORDER_ID,
+      "customer.customerId": "customer-1",
+    });
+  });
+
+  it("updates admin order status and records a notification when status changes", async () => {
+    const existingOrder = createOrderDocument({ status: "pending" });
+    sinon.stub(OrderModel, "findById").returns(fakeQuery(existingOrder) as never);
+    const recordStatusChangedStub = sinon
+      .stub(notificationService, "recordOrderStatusChanged")
+      .resolves(undefined as never);
+
+    const order = await updateAdminOrderStatus(ORDER_ID, "packed");
+
+    expect(order?.status).to.equal("packed");
+    expect(recordStatusChangedStub.calledOnce).to.equal(true);
+  });
+});
