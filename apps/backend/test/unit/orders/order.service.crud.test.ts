@@ -69,6 +69,7 @@ function createOrderDocument(
 ): OrderRecord & { save: sinon.SinonStub } {
   const doc = {
     _id: { toString: () => ORDER_ID },
+    orderNumber: "ORD-000001",
     customer: {
       customerId: null,
       firstName: "Mara",
