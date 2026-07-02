@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Orders
+method: GET
+url: '{{baseUrl}}/api/admin/orders'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has orders array", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("orders");
+          pm.expect(json.orders).to.be.an("array");
+      });
+      const json = pm.response.json();
+      if (json.orders && json.orders.length > 0) {
+          pm.collectionVariables.set("orderId", json.orders[0].id);
+          console.log("orderId saved: " + json.orders[0].id);
+      }

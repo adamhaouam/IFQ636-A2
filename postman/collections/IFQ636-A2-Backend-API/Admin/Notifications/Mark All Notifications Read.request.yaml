@@ -1,0 +1,22 @@
+$kind: http-request
+name: Mark All Notifications Read
+method: POST
+url: '{{baseUrl}}/api/admin/notifications/mark-all-read'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response confirms success", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("ok");
+          pm.expect(json.ok).to.eql(true);
+      });

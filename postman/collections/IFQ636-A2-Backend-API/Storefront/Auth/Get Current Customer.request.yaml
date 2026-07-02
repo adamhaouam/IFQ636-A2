@@ -1,0 +1,23 @@
+$kind: http-request
+name: Get Current Customer
+method: GET
+url: '{{baseUrl}}/api/storefront/auth/me'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{customerToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has customer info", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("customer");
+          pm.expect(json.customer).to.have.property("id");
+          pm.expect(json.customer).to.have.property("email");
+      });

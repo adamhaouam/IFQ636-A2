@@ -1,0 +1,23 @@
+$kind: http-request
+name: Delete Product Image
+method: DELETE
+url: '{{baseUrl}}/api/admin/products/{{productId}}/image'
+order: 6000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has product with cleared image", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("product");
+          pm.expect(json.product).to.have.property("id");
+          pm.expect(json.product.imageUrl).to.be.oneOf([null, undefined, ""]);
+      });

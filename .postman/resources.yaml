@@ -1,0 +1,7 @@
+workspace:
+  id: 90e3810c-b2ed-41e5-883a-5bfbf32a2d2e
+cloudResources:
+  collections:
+    ../postman/collections/IFQ636-A2-Backend-API: 56230705-31eac4f3-ea3b-4150-8ac3-57ec83ce1f96
+  environments:
+    ../postman/environments/Local.environment.yaml: 56230705-23f11d4f-1c4d-4905-b9f1-6f9eb52e6b18

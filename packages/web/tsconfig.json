@@ -9,7 +9,6 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["../ui/src/*"]
     }

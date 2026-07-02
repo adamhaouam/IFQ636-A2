@@ -1,0 +1,32 @@
+$kind: http-request
+name: Update Notification Status
+method: PATCH
+url: '{{baseUrl}}/api/admin/notifications/{{notificationId}}/status'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "read"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has updated notification", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("notification");
+          pm.expect(json.notification).to.have.property("id");
+          pm.expect(json.notification).to.have.property("status");
+      });

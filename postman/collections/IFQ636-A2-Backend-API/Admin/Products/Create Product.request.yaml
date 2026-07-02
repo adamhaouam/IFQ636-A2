@@ -1,0 +1,43 @@
+$kind: http-request
+name: Create Product
+method: POST
+url: "{{baseUrl}}/api/admin/products"
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Sample Product",
+      "sku": "SKU-009",
+      "description": "A sample product description",
+      "price": 29.99,
+      "stock": 100,
+      "status": "draft",
+      "visibility": "public"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response has product with id", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("product");
+          pm.expect(json.product).to.have.property("id");
+          pm.expect(json.product).to.have.property("name");
+          pm.expect(json.product).to.have.property("sku");
+          pm.expect(json.product).to.have.property("price");
+      });
+      const json = pm.response.json();
+      if (json.product && json.product.id) {
+          pm.collectionVariables.set("productId", json.product.id);
+          console.log("productId saved: " + json.product.id);
+      }
+    language: text/javascript

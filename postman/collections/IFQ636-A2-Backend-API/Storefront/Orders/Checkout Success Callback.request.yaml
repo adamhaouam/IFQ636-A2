@@ -1,0 +1,27 @@
+$kind: http-request
+name: Checkout Success Callback
+method: GET
+url: '{{baseUrl}}/api/storefront/orders/checkout/:paymentMethod/success'
+order: 4000
+pathVariables:
+  - key: paymentMethod
+    value: stripe
+queryParams:
+  - key: orderId
+    value: '{{orderId}}'
+  - key: session_id
+    value: '{{sessionId}}'
+  - key: token
+    value: ''
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 302 redirect", function () {
+          pm.response.to.have.status(302);
+      });
+      pm.test("Redirects to success page", function () {
+          const location = pm.response.headers.get("Location");
+          pm.expect(location).to.include("payment=success");
+      });

@@ -46,6 +46,6 @@ export async function adminAuthRoutes(app: FastifyInstance) {
   });
 
   app.post("/logout", { preHandler: requireAdmin }, async (_request, reply) => {
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 }

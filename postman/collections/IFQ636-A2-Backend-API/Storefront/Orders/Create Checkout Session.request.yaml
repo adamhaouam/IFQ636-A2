@@ -1,0 +1,63 @@
+$kind: http-request
+name: Create Checkout Session
+method: POST
+url: "{{baseUrl}}/api/storefront/orders/checkout"
+order: 3000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customer": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "email": "john.smith@example.com",
+        "phone": null
+      },
+      "deliveryAddress": {
+        "recipientName": "John Smith",
+        "addressLine1": "123 Main St",
+        "addressLine2": null,
+        "suburb": "Brisbane",
+        "state": "QLD",
+        "postcode": "4000",
+        "instructions": null
+      },
+      "items": [
+        { "productId": "{{productId}}", "quantity": 1 }
+      ],
+      "paymentMethod": "stripe"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response has checkout session URL", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("redirectUrl");
+      });
+      pm.test("Response has order ID", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("orderId");
+      });
+      const json = pm.response.json();
+      if (json.orderId) {
+          pm.collectionVariables.set("orderId", json.orderId);
+          console.log("orderId saved: " + json.orderId);
+      }
+      if (json.redirectUrl) {
+          try {
+              const url = new URL(json.redirectUrl);
+              const sessionId = url.pathname.split("/").pop();
+              if (sessionId) {
+                  pm.collectionVariables.set("sessionId", sessionId);
+                  console.log("sessionId saved: " + sessionId);
+              }
+          } catch (e) {
+              console.error("Failed to extract sessionId from redirectUrl: " + e.message);
+          }
+      }
+    language: text/javascript

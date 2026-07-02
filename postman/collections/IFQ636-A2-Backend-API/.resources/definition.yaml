@@ -1,0 +1,12 @@
+$kind: collection
+name: IFQ636-A2 Backend API
+variables:
+  baseUrl: http://localhost:3000
+  adminToken: ""
+  customerToken: ""
+  productId: ""
+  customerId: ""
+  orderId: ""
+  notificationId: ""
+  channel: admin
+  sessionId: ""

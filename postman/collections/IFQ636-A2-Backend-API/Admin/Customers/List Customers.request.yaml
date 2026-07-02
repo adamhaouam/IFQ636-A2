@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Customers
+method: GET
+url: '{{baseUrl}}/api/admin/customers'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has customers array", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("customers");
+          pm.expect(json.customers).to.be.an("array");
+      });
+      const json = pm.response.json();
+      if (json.customers && json.customers.length > 0) {
+          pm.collectionVariables.set("customerId", json.customers[0].id);
+          console.log("customerId saved: " + json.customers[0].id);
+      }
