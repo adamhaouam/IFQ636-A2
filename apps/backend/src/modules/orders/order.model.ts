@@ -10,6 +10,7 @@ import {
 } from "@otbt/types";
 
 export interface OrderDocument {
+  orderNumber: string;
   customer: OrderCustomerSnapshot;
   deliveryAddress: OrderDeliveryAddress;
   items: OrderItem[];
@@ -51,7 +52,11 @@ const orderItemSchema = new Schema<OrderItem>(
     name: { type: String, required: true, trim: true },
     sku: { type: String, required: true, trim: true },
     imageUrl: { type: String, default: null },
+    basePrice: { type: Number, required: true, min: 0 },
     price: { type: Number, required: true, min: 0 },
+    discountAmount: { type: Number, default: 0, min: 0 },
+    discountRate: { type: Number, default: 0, min: 0, max: 100 },
+    membershipDiscountApplied: { type: Boolean, default: false, required: true },
     quantity: { type: Number, required: true, min: 1 },
     lineTotal: { type: Number, required: true, min: 0 },
   },
@@ -76,6 +81,7 @@ const orderPaymentSchema = new Schema<OrderPayment>(
 
 const orderSchema = new Schema<OrderDocument>(
   {
+    orderNumber: { type: String, required: true, trim: true, unique: true },
     customer: { type: orderCustomerSchema, required: true },
     deliveryAddress: { type: orderDeliveryAddressSchema, required: true },
     items: {

@@ -4,6 +4,7 @@ import { RequireAdmin, requireAdminSession } from "../modules/auth";
 import { customerEditLoader, customerListLoader } from "../modules/customers";
 import { orderDetailLoader, orderListLoader } from "../modules/orders";
 import { productEditLoader, productListLoader } from "../modules/products";
+import { settingsLoader } from "../modules/settings";
 import { AdminLayout } from "./routes/admin.layout";
 import { CatalogueCreatePage } from "./routes/catalog/create.page";
 import { CatalogueEditPage } from "./routes/catalog/edit.page";
@@ -16,6 +17,7 @@ import { OrderListPage } from "./routes/orders/list.page";
 import { PublicLayout } from "./routes/public.layout";
 import { RootLayout } from "./routes/root.layout";
 import { RouteError } from "./routes/route-error";
+import { SettingsPage } from "./routes/settings/settings.page";
 
 export const router = createBrowserRouter(
   [
@@ -70,6 +72,11 @@ export const router = createBrowserRouter(
                   path: "orders/:orderId",
                   loader: orderDetailLoader,
                   element: <OrderDetailPage />,
+                },
+                {
+                  path: "settings",
+                  loader: settingsLoader,
+                  element: <SettingsPage />,
                 },
               ],
             },

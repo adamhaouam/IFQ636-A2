@@ -21,4 +21,6 @@ jobs:
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          PAYPAL_SECRET_KEY: ${{ secrets.PAYPAL_SECRET_KEY }}
+          PAYPAL_CLIENT_ID: ${{ secrets.PAYPAL_CLIENT_ID }}
         run: sudo -n -u otbt /usr/local/bin/deploy/otbt-restart

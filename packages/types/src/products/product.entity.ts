@@ -13,6 +13,7 @@ export interface Product {
   description: string;
   imageUrl?: string;
   price: number;
+  membershipDiscountEnabled: boolean;
   stock: number;
   status: ProductStatus;
   visibility: ProductVisibility;
@@ -26,6 +27,7 @@ export const EDITABLE_PRODUCT_FIELDS = [
   "description",
   "imageUrl",
   "price",
+  "membershipDiscountEnabled",
   "stock",
   "status",
   "visibility",
@@ -35,6 +37,7 @@ export type EditableProductField = (typeof EDITABLE_PRODUCT_FIELDS)[number];
 
 export type EditableProduct = Pick<Product, EditableProductField>;
 
-export type ProductCreate = EditableProduct;
+export type ProductCreate = Omit<EditableProduct, "membershipDiscountEnabled"> &
+  Partial<Pick<EditableProduct, "membershipDiscountEnabled">>;
 
 export type ProductUpdate = Partial<EditableProduct>;

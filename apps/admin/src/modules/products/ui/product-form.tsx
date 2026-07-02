@@ -58,6 +58,7 @@ export function ProductForm({
     sku: defaultValues.sku,
     description: defaultValues.description,
     imageUrl: defaultValues.imageUrl,
+    membershipDiscountEnabled: defaultValues.membershipDiscountEnabled ?? false,
     price: defaultValues.price,
     stock: defaultValues.stock,
     status: defaultValues.status,
@@ -347,6 +348,29 @@ export function ProductForm({
                   ))}
                 </select>
               </div>
+
+              <label className="flex gap-3 rounded-md border bg-background p-4">
+                <input
+                  checked={draftProduct.membershipDiscountEnabled}
+                  className="mt-0.5 size-4 accent-primary"
+                  disabled={submitting}
+                  onChange={(event) =>
+                    updateDraft(
+                      "membershipDiscountEnabled",
+                      event.currentTarget.checked,
+                    )
+                  }
+                  type="checkbox"
+                />
+                <span className="grid gap-1">
+                  <span className="text-sm font-medium leading-none text-foreground">
+                    Apply member discount
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Members receive the store membership discount for this product.
+                  </span>
+                </span>
+              </label>
 
               <Button className="hidden" disabled={submitting} type="submit">
                 {submitLabel ?? "Save Changes"}

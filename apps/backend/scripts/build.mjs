@@ -6,6 +6,7 @@ const external = [
   "@fastify/cors",
   "@fastify/multipart",
   "@fastify/static",
+  "@paypal/paypal-server-sdk",
   "bcryptjs",
   "dotenv",
   "fastify",

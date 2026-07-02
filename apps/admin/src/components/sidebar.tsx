@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
 export function AdminSidebar() {
 	const { pathname } = useLocation();
 	const { open } = useSidebar();
+	const settingsIsActive = pathname === "/settings";
 
 	return (
 		<aside
@@ -89,8 +90,16 @@ export function AdminSidebar() {
 				<SidebarFooter className="mt-auto p-4 pt-2">
 					<SidebarMenu className="gap-1">
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild className="h-10 px-3 font-medium text-foreground">
-								<Link to="/">
+							<SidebarMenuButton
+								asChild
+								isActive={settingsIsActive}
+								className={
+									settingsIsActive
+										? "h-10 px-3 font-medium text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground data-[active=true]:bg-primary data-[active=true]:text-primary-foreground [&>svg]:text-primary-foreground [&>span]:text-primary-foreground"
+										: "h-10 px-3 font-medium text-foreground"
+								}
+							>
+								<Link to="/settings">
 									<Settings className="size-4" />
 									<span>Settings</span>
 								</Link>

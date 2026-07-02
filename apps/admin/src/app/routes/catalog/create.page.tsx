@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router";
 import { Link } from "@otbt/web";
 
-import type { ProductCreate } from "@otbt/types";
+import type { EditableProduct } from "@otbt/types";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,10 +13,11 @@ import {
 
 import { ProductForm, useCreateProduct } from "../../../modules/products";
 
-const defaultProductValues: ProductCreate = {
+const defaultProductValues: EditableProduct = {
   name: "",
   sku: "",
   description: "",
+  membershipDiscountEnabled: false,
   price: 0,
   stock: 0,
   status: "draft",
@@ -24,12 +25,14 @@ const defaultProductValues: ProductCreate = {
 };
 
 
-const setProductValues = (product: ProductCreate): ProductCreate => {
+const setProductValues = (product: EditableProduct): EditableProduct => {
   const productFields = { ...product };
   productFields.name = `${product.name} (Copy)`;
   productFields.sku = `${product.sku}-2`;
   productFields.status = "draft";
   productFields.visibility = "hidden";
+  productFields.membershipDiscountEnabled =
+    product.membershipDiscountEnabled ?? false;
   return productFields;
 };
 
@@ -37,7 +40,7 @@ export function CatalogueCreatePage() {
   const navigate = useNavigate();
   const createProduct = useCreateProduct();
 
-  async function saveProduct(productDraft: ProductCreate) {
+  async function saveProduct(productDraft: EditableProduct) {
     await createProduct.mutateAsync(productDraft);
     navigate("/");
   }

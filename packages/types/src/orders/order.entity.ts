@@ -26,7 +26,11 @@ export interface OrderItem {
   name: string;
   sku: string;
   imageUrl: string | null;
+  basePrice: number;
   price: number;
+  discountAmount: number;
+  discountRate: number;
+  membershipDiscountApplied: boolean;
   quantity: number;
   lineTotal: number;
 }
@@ -42,6 +46,7 @@ export interface OrderPayment {
 
 export interface Order {
   id: string;
+  orderNumber: string;
   customer: OrderCustomerSnapshot;
   deliveryAddress: OrderDeliveryAddress;
   items: OrderItem[];
@@ -55,7 +60,13 @@ export interface Order {
 
 export type OrderCreate = Pick<
   Order,
-  "customer" | "deliveryAddress" | "items" | "payment" | "subtotal" | "total"
+  | "orderNumber"
+  | "customer"
+  | "deliveryAddress"
+  | "items"
+  | "payment"
+  | "subtotal"
+  | "total"
 > & {
   status?: OrderStatus;
 };

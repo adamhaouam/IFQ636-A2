@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { queryOptions, useMutation } from "@tanstack/react-query";
 
 import type {
@@ -7,6 +8,11 @@ import type {
 } from "@otbt/types";
 
 import { storefrontRequest } from "../../../lib/http.client";
+import { cartQuoteQueryRootKey } from "../../cart/cart.query";
+import {
+  publicProductQueryRootKey,
+  publicProductsQueryRootKey,
+} from "../../products/products.query";
 import { getSessionToken } from "./customer-auth.storage";
 
 export const currentCustomerQueryKey = ["current-customer"];
@@ -35,6 +41,15 @@ export function currentCustomerQueryOptions() {
     enabled: Boolean(getSessionToken()),
     retry: false,
   });
+}
+
+export async function invalidateCustomerSessionQueries(queryClient: QueryClient) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: currentCustomerQueryKey }),
+    queryClient.invalidateQueries({ queryKey: publicProductsQueryRootKey }),
+    queryClient.invalidateQueries({ queryKey: publicProductQueryRootKey }),
+    queryClient.invalidateQueries({ queryKey: cartQuoteQueryRootKey }),
+  ]);
 }
 
 export function useLoginCustomerMutation() {

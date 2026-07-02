@@ -2,9 +2,12 @@ import { isValidObjectId } from "mongoose";
 
 import {
   ORDER_STATUSES,
+  type CartQuoteLineItemRequest,
+  type CartQuoteResponse,
   type AdminOrderListItem,
   type CheckoutRequest,
   type CheckoutSessionResponse,
+  type CustomerAccessLevel,
   type Order,
   type OrderCreate,
   type OrderHistoryItem,
@@ -19,8 +22,13 @@ import {
 } from "../email/email.templates.js";
 import { notificationService } from "../notifications/index.js";
 import { getPaymentProvider } from "../payments/payment-provider.factory.js";
+import {
+  createProductPricingService,
+  type ProductPricingService,
+} from "../pricing/index.js";
 import { ProductModel } from "../products/product.model.js";
 import { orderEmailRegistry } from "./emails/email.registry.js";
+import { orderNumberService } from "./order-number.service.js";
 import { OrderModel, type OrderDocument } from "./order.model.js";
 
 type OrderRecord = OrderDocument & {
@@ -28,6 +36,11 @@ type OrderRecord = OrderDocument & {
   createdAt: Date;
   updatedAt: Date;
 };
+
+interface OrderItemPricingContext {
+  customerAccessLevel?: CustomerAccessLevel | null;
+  pricingService?: ProductPricingService;
+}
 
 export class OrderValidationError extends Error {
   constructor(message: string) {
@@ -69,15 +82,33 @@ async function hydrateOrderItemImages(items: OrderItem[]): Promise<OrderItem[]> 
 async function serializeOrder(order: OrderRecord): Promise<Order> {
   return {
     id: order._id.toString(),
+    orderNumber: order.orderNumber,
     customer: order.customer,
     deliveryAddress: order.deliveryAddress,
-    items: await hydrateOrderItemImages(order.items),
+    items: await hydrateOrderItemImages(order.items.map(normalizeOrderItemPricing)),
     status: order.status,
     payment: order.payment,
     subtotal: order.subtotal,
     total: order.total,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
+  };
+}
+
+function normalizeOrderItemPricing(item: OrderItem): OrderItem {
+  const legacyItem = item as Partial<OrderItem> & Pick<OrderItem, "price" | "quantity">;
+  const basePrice = legacyItem.basePrice ?? item.price;
+  const discountAmount = legacyItem.discountAmount ?? 0;
+  const discountRate = legacyItem.discountRate ?? 0;
+  const membershipDiscountApplied = legacyItem.membershipDiscountApplied ?? false;
+
+  return {
+    ...item,
+    basePrice,
+    discountAmount,
+    discountRate,
+    membershipDiscountApplied,
+    lineTotal: item.lineTotal ?? item.price * item.quantity,
   };
 }
 
@@ -92,7 +123,7 @@ function serializeOrderHistoryItem(order: OrderRecord): OrderHistoryItem {
 
   return {
     id,
-    reference: id,
+    reference: order.orderNumber,
     status: order.status,
     total: order.total,
     itemCount: order.items.reduce((total, item) => total + item.quantity, 0),
@@ -115,7 +146,7 @@ async function serializeAdminOrderListItem(
 
   return {
     id: serializedOrder.id,
-    reference: serializedOrder.id,
+    reference: serializedOrder.orderNumber,
     customerName: `${serializedOrder.customer.firstName} ${serializedOrder.customer.lastName}`,
     customerEmail: serializedOrder.customer.email,
     status: serializedOrder.status,
@@ -146,7 +177,8 @@ function normalizeQuantity(quantity: number) {
 }
 
 async function buildOrderItems(
-  items: CheckoutRequest["items"],
+  items: CartQuoteLineItemRequest[],
+  context: OrderItemPricingContext = {},
 ): Promise<OrderItem[]> {
   if (items.length === 0) {
     throw new OrderValidationError("Cart cannot be empty");
@@ -168,6 +200,8 @@ async function buildOrderItems(
     status: "active",
     visibility: "public",
   }).exec();
+  const pricingService =
+    context.pricingService ?? (await createProductPricingService());
 
   return requestedItems.map((requestedItem) => {
     const product = products.find(
@@ -178,16 +212,59 @@ async function buildOrderItems(
       throw new OrderValidationError("Cart contains an unavailable product");
     }
 
+    const pricing = pricingService.calculateLineTotal(
+      {
+        membershipDiscountEnabled: product.membershipDiscountEnabled,
+        price: product.price,
+      },
+      requestedItem.quantity,
+      { customerAccessLevel: context.customerAccessLevel },
+    );
+
     return {
       productId: product._id.toString(),
       name: product.name,
       sku: product.sku,
       imageUrl: product.imageUrl ?? null,
-      price: product.price,
+      basePrice: pricing.basePrice,
+      price: pricing.finalPrice,
+      discountAmount: pricing.discountAmount,
+      discountRate: pricing.discountRate,
+      membershipDiscountApplied: pricing.membershipDiscountApplied,
       quantity: requestedItem.quantity,
-      lineTotal: product.price * requestedItem.quantity,
+      lineTotal: pricing.lineTotal,
     };
   });
+}
+
+export async function quoteCartItems(
+  items: CartQuoteLineItemRequest[],
+  customerAccessLevel?: CustomerAccessLevel | null,
+  pricingService?: ProductPricingService,
+): Promise<CartQuoteResponse> {
+  const orderItems = await buildOrderItems(items, {
+    customerAccessLevel,
+    pricingService,
+  });
+  const subtotal = orderItems.reduce((total, item) => total + item.lineTotal, 0);
+
+  return {
+    items: orderItems.map((item) => ({
+      basePrice: item.basePrice,
+      discountAmount: item.discountAmount,
+      discountRate: item.discountRate,
+      finalPrice: item.price,
+      imageUrl: item.imageUrl,
+      lineTotal: item.lineTotal,
+      membershipDiscountApplied: item.membershipDiscountApplied,
+      name: item.name,
+      productId: item.productId,
+      quantity: item.quantity,
+      sku: item.sku,
+    })),
+    subtotal,
+    total: subtotal,
+  };
 }
 
 function formatCurrency(amount: number) {
@@ -391,8 +468,8 @@ async function sendOrderConfirmationEmail(order: Order) {
   try {
     const renderedEmail = await renderRegisteredEmailTemplate({
       emailType: "Order placed",
-      preheader: `We have received order ${order.id}.`,
-      subject: `Order confirmation ${order.id}`,
+      preheader: `We have received order ${order.orderNumber}.`,
+      subject: `Order confirmation ${order.orderNumber}`,
       template: orderEmailRegistry.orderConfirmation,
       htmlValues: {
         orderItemsHtml: renderOrderItemRows(order),
@@ -404,7 +481,7 @@ async function sendOrderConfirmationEmail(order: Order) {
         itemCount: String(getTotalItemCount(order)),
         itemSummary: formatItemSummary(order),
         orderLink: resolveStorefrontUrl(`/orders/${order.id}`),
-        orderReference: order.id,
+        orderReference: order.orderNumber,
         orderStatus: formatStatus(order.status),
         orderTotal: formatCurrency(order.total),
       },
@@ -440,8 +517,8 @@ async function sendOrderStatusUpdateEmail(
   try {
     const renderedEmail = await renderRegisteredEmailTemplate({
       emailType: "Order update",
-      preheader: `Order ${order.id} is now ${statusCopy.label}.`,
-      subject: `Order status update ${order.id}`,
+      preheader: `Order ${order.orderNumber} is now ${statusCopy.label}.`,
+      subject: `Order status update ${order.orderNumber}`,
       template: orderEmailRegistry.orderStatusUpdate,
       htmlValues: {
         orderItemsHtml: renderOrderItemRows(order),
@@ -453,7 +530,7 @@ async function sendOrderStatusUpdateEmail(
         itemCount: String(getTotalItemCount(order)),
         itemSummary: formatItemSummary(order),
         orderLink: resolveStorefrontUrl(`/orders/${order.id}`),
-        orderReference: order.id,
+        orderReference: order.orderNumber,
         orderTotal: formatCurrency(order.total),
         statusHeading: statusCopy.heading,
         statusIntro: statusCopy.intro,
@@ -477,11 +554,13 @@ async function sendOrderStatusUpdateEmail(
 export async function createCheckoutOrder(
   input: CheckoutRequest,
   customerId: string | null,
+  customerAccessLevel?: CustomerAccessLevel | null,
 ): Promise<Order> {
-  const items = await buildOrderItems(input.items);
+  const items = await buildOrderItems(input.items, { customerAccessLevel });
   const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
 
   const order: OrderCreate = {
+    orderNumber: await orderNumberService.generateNext(),
     customer: {
       customerId,
       firstName: input.customer.firstName,
@@ -519,13 +598,15 @@ export async function createCheckoutSessionForOrder(
   input: CheckoutRequest,
   customerId: string | null,
   origin: string,
+  customerAccessLevel?: CustomerAccessLevel | null,
 ): Promise<CheckoutSessionResponse> {
-  const items = await buildOrderItems(input.items);
+  const items = await buildOrderItems(input.items, { customerAccessLevel });
   const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
 
   const provider = getPaymentProvider(input.paymentMethod);
 
   const order: OrderCreate = {
+    orderNumber: await orderNumberService.generateNext(),
     customer: {
       customerId,
       firstName: input.customer.firstName,

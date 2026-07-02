@@ -4,22 +4,36 @@ import type { ProductDetailResponse, ProductListResponse } from "@otbt/types";
 
 import { storefrontRequest } from "../../lib/http.client";
 
-const publicProductsQueryKey = ["public-products"] as const;
-const publicProductQueryKey = (productId: string) =>
-  ["public-product", productId] as const;
+type PublicProductsPageParams = {
+  page: number;
+};
 
-async function fetchPublicProducts() {
-  return storefrontRequest<ProductListResponse>("/products");
+export const publicProductsQueryRootKey = ["public-products"] as const;
+export const publicProductQueryRootKey = ["public-product"] as const;
+
+const publicProductsQueryKey = (params: PublicProductsPageParams) =>
+  [...publicProductsQueryRootKey, params] as const;
+const publicProductQueryKey = (productId: string) =>
+  [...publicProductQueryRootKey, productId] as const;
+
+function toProductSearchParams(params: PublicProductsPageParams) {
+  return new URLSearchParams({ page: String(params.page) }).toString();
+}
+
+async function fetchPublicProducts(params: PublicProductsPageParams) {
+  return storefrontRequest<ProductListResponse>(
+    `/products?${toProductSearchParams(params)}`,
+  );
 }
 
 async function fetchPublicProduct(productId: string) {
   return storefrontRequest<ProductDetailResponse>(`/products/${productId}`);
 }
 
-export function publicProductsQueryOptions() {
+export function publicProductsQueryOptions(params: PublicProductsPageParams) {
   return queryOptions({
-    queryKey: publicProductsQueryKey,
-    queryFn: fetchPublicProducts,
+    queryKey: publicProductsQueryKey(params),
+    queryFn: () => fetchPublicProducts(params),
   });
 }
 
@@ -30,8 +44,8 @@ export function publicProductQueryOptions(productId: string) {
   });
 }
 
-export function usePublicProductsQuery() {
-  return useQuery(publicProductsQueryOptions());
+export function usePublicProductsQuery(params: PublicProductsPageParams) {
+  return useQuery(publicProductsQueryOptions(params));
 }
 
 export function usePublicProductQuery(productId: string) {

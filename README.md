@@ -9,11 +9,15 @@ Order of the Black Thorn is an online store for dark floral arrangements, vessel
 - Public admin dashboard: [http://16.176.211.132/admin/](http://16.176.211.132/admin/)
 - Optional hostname storefront: [http://otbtstore.demo/](http://otbtstore.demo/)
 - Optional hostname admin dashboard: [http://otbtstore.demo/admin/](http://otbtstore.demo/admin/)
-- GitHub repository: [melchoy/IFQ636-A1](https://github.com/melchoy/IFQ636-A1)
-- Jira board: [OTBT project board](https://ifq636-otbt.atlassian.net/jira/software/c/projects/OTBT/list?jql=project%20%3D%20OTBT%20ORDER%20BY%20created%20DESC)
-- Figma design: [IFQ636 Assignment 1 design file](https://www.figma.com/design/TFC6WKup4D3rvQQXCrrCRT/IFQ636---Assignment-1?design)
-- Figma storefront prototype: [IFQ636 Assignment 1 storefront prototype](https://www.figma.com/proto/TFC6WKup4D3rvQQXCrrCRT/IFQ636---Assignment-1?node-id=1524-162&p=f&t=8tt8PMLbV2vnIjA9-0&scaling=min-zoom&content-scaling=fixed&page-id=1301%3A825&starting-point-node-id=1524%3A162&show-proto-sidebar=1)
-- Figma admin prototype: [IFQ636 Assignment 1 admin prototype](https://www.figma.com/proto/TFC6WKup4D3rvQQXCrrCRT/IFQ636---Assignment-1?node-id=874-2&p=f&t=JkDyqNcDAqLQgmsS-0&scaling=min-zoom&content-scaling=fixed&page-id=420%3A35&starting-point-node-id=874%3A2&show-proto-sidebar=1)
+- GitHub repository: [melchoy/IFQ636-A2](https://github.com/melchoy/IFQ636-A2)
+- Figma design: [IFQ636 Assignment 2 design file](https://www.figma.com/design/OvrzjT8RbhumImaUCsiaON/IFQ636---Assignment-2?node-id=199-430&t=8KggxE7R4LaryEQb-1)
+- Figma storefront prototype: [IFQ636 Assignment 2 storefront prototype](https://www.figma.com/proto/OvrzjT8RbhumImaUCsiaON/IFQ636---Assignment-2?node-id=1301-825&t=Bn0ITqxLvO9IrPQa-1)
+- Figma admin prototype: [IFQ636 Assignment 2 admin prototype](https://www.figma.com/proto/OvrzjT8RbhumImaUCsiaON/IFQ636---Assignment-2?node-id=420-35&t=8KggxE7R4LaryEQb-1)
+
+## Team Members
+
+- [@melchoy](https://github.com/melchoy)
+- [@adamhaouam](https://github.com/adamhaouam)
 
 ## Demo Access
 

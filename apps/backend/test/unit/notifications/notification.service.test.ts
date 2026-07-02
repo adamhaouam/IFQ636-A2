@@ -89,6 +89,7 @@ class FakeNotificationPublisher {
 function createOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: "order-1001",
+    orderNumber: "ORD-000001",
     customer: {
       customerId: null,
       email: "customer@example.com",

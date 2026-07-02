@@ -12,6 +12,7 @@ export interface ProductDocument {
   description: string;
   imageUrl?: string;
   price: number;
+  membershipDiscountEnabled: boolean;
   stock: number;
   status: ProductStatus;
   visibility: ProductVisibility;
@@ -32,6 +33,7 @@ const productSchema = new Schema<ProductDocument>(
     description: { type: String, required: true, trim: true },
     imageUrl: { type: String, trim: true },
     price: { type: Number, required: true, min: 0 },
+    membershipDiscountEnabled: { type: Boolean, default: false, required: true },
     stock: { type: Number, required: true, min: 0 },
     status: {
       type: String,

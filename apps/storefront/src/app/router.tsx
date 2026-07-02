@@ -49,7 +49,8 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        loader: () => queryClient.ensureQueryData(publicProductsQueryOptions()),
+        loader: () =>
+          queryClient.ensureQueryData(publicProductsQueryOptions({ page: 1 })),
         element: <HomePage />,
         errorElement: <RouteError />,
       },

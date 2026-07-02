@@ -82,5 +82,5 @@ export function OrderDetailPage() {
     );
   }
 
-  return <OrderDetail order={orderDetailQuery.data.order} orderLabel={orderId} />;
+  return <OrderDetail order={orderDetailQuery.data.order} />;
 }

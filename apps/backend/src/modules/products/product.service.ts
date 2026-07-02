@@ -18,6 +18,16 @@ interface ProductQueryConstraints {
   visibility?: ProductVisibility;
 }
 
+export interface ProductPaginationOptions {
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginatedProductList {
+  products: Product[];
+  total: number;
+}
+
 function applyProductQueryConstraints(
   query: FilterQuery<ProductDocument>,
   constraints: ProductQueryConstraints,
@@ -39,6 +49,7 @@ function serializeProduct(product: ProductRecord): Product {
     description: product.description,
     imageUrl: product.imageUrl,
     price: product.price,
+    membershipDiscountEnabled: product.membershipDiscountEnabled ?? false,
     stock: product.stock,
     status: product.status,
     visibility: product.visibility,
@@ -60,6 +71,31 @@ export async function listProducts(
     .exec();
 
   return products.map((product) => serializeProduct(product));
+}
+
+export async function listPaginatedProducts(
+  filters: ProductQueryConstraints = {},
+  pagination: ProductPaginationOptions,
+): Promise<PaginatedProductList> {
+  const query: FilterQuery<ProductDocument> = {};
+
+  applyProductQueryConstraints(query, filters);
+
+  const skip = (pagination.page - 1) * pagination.pageSize;
+  const [products, total] = await Promise.all([
+    ProductModel.find(query)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(pagination.pageSize)
+      .lean<ProductRecord[]>()
+      .exec(),
+    ProductModel.countDocuments(query).exec(),
+  ]);
+
+  return {
+    products: products.map((product) => serializeProduct(product)),
+    total,
+  };
 }
 
 export async function createProduct(product: ProductCreate): Promise<Product> {
