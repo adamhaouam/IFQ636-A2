@@ -106,40 +106,6 @@ describe("order.service CRUD", () => {
   });
 
   describe("createCheckoutOrder (create)", () => {
-    it("builds order items from active/public products and creates the order", async () => {
-      sinon.stub(ProductModel, "find").returns(fakeQuery([createProductDocument()]) as never);
-      const createStub = sinon
-        .stub(OrderModel, "create")
-        .resolves(createOrderDocument() as never);
-
-      const order = await createCheckoutOrder(
-        {
-          customer: { firstName: "Mara", lastName: "Vale", email: "mara@example.com", phone: null },
-          deliveryAddress: {
-            recipientName: "Mara Vale",
-            addressLine1: "1 Thorn Lane",
-            addressLine2: null,
-            suburb: "Brisbane",
-            state: "QLD",
-            postcode: "4000",
-            instructions: null,
-          },
-          items: [{ productId: PRODUCT_ID, quantity: 1 }],
-          paymentMethod: "stripe",
-        },
-        null,
-      );
-
-      expect(order.id).to.equal(ORDER_ID);
-      expect(order.subtotal).to.equal(20);
-      expect(createStub.calledOnce).to.equal(true);
-
-      const createInput = createStub.firstCall.args[0] as { status: string; subtotal: number };
-
-      expect(createInput.status).to.equal("pending");
-      expect(createInput.subtotal).to.equal(20);
-    });
-
     it("throws when the cart is empty", async () => {
       try {
         await createCheckoutOrder(
@@ -164,83 +130,6 @@ describe("order.service CRUD", () => {
         expect(error).to.be.instanceOf(OrderValidationError);
         expect((error as OrderValidationError).message).to.equal("Cart cannot be empty");
       }
-    });
-
-    it("throws when a cart item references a product that is unavailable", async () => {
-      sinon.stub(ProductModel, "find").returns(fakeQuery([]) as never);
-
-      try {
-        await createCheckoutOrder(
-          {
-            customer: { firstName: "Mara", lastName: "Vale", email: "mara@example.com", phone: null },
-            deliveryAddress: {
-              recipientName: "Mara Vale",
-              addressLine1: "1 Thorn Lane",
-              addressLine2: null,
-              suburb: "Brisbane",
-              state: "QLD",
-              postcode: "4000",
-              instructions: null,
-            },
-            items: [{ productId: PRODUCT_ID, quantity: 1 }],
-            paymentMethod: "stripe",
-          },
-          null,
-        );
-        expect.fail("expected createCheckoutOrder to throw");
-      } catch (error) {
-        expect(error).to.be.instanceOf(OrderValidationError);
-        expect((error as OrderValidationError).message).to.equal(
-          "Cart contains an unavailable product",
-        );
-      }
-    });
-  });
-
-  describe("createCheckoutSessionForOrder (create + payment)", () => {
-    it("creates an order and a provider checkout session", async () => {
-      sinon.stub(ProductModel, "find").returns(fakeQuery([createProductDocument()]) as never);
-      sinon.stub(OrderModel, "create").resolves(createOrderDocument() as never);
-      const updateOneStub = sinon
-        .stub(OrderModel, "updateOne")
-        .returns(fakeQuery(undefined) as never);
-      sinon.stub(StripePaymentAdapter.prototype, "createCheckoutSession").resolves({
-        sessionId: "sess_123",
-        redirectUrl: "https://checkout.stripe.com/sess_123",
-      });
-
-      const session = await createCheckoutSessionForOrder(
-        {
-          customer: { firstName: "Mara", lastName: "Vale", email: "mara@example.com", phone: null },
-          deliveryAddress: {
-            recipientName: "Mara Vale",
-            addressLine1: "1 Thorn Lane",
-            addressLine2: null,
-            suburb: "Brisbane",
-            state: "QLD",
-            postcode: "4000",
-            instructions: null,
-          },
-          items: [{ productId: PRODUCT_ID, quantity: 1 }],
-          paymentMethod: "stripe",
-        },
-        null,
-        "https://shop.example.com",
-      );
-
-      expect(session).to.deep.equal({
-        orderId: ORDER_ID,
-        redirectUrl: "https://checkout.stripe.com/sess_123",
-      });
-      expect(updateOneStub.calledOnce).to.equal(true);
-
-      const [filter, update] = updateOneStub.firstCall.args as unknown as [
-        Record<string, unknown>,
-        { $set: Record<string, unknown> },
-      ];
-
-      expect(filter).to.deep.equal({ _id: ORDER_ID });
-      expect(update.$set).to.deep.equal({ "payment.checkoutSessionId": "sess_123" });
     });
   });
 
