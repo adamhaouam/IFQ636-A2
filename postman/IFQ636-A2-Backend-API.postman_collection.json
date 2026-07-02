@@ -1,0 +1,992 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "name": "IFQ636-A2 Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "adminToken", "value": "" },
+    { "key": "customerToken", "value": "" },
+    { "key": "customerId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "notificationId", "value": "" },
+    { "key": "sessionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Admin",
+      "id": "f1e2d3c4-b5a6-4978-8b0c-1d2e3f4a5b6c",
+      "item": [
+        {
+          "name": "Auth",
+          "id": "a2b3c4d5-e6f7-4089-9c1d-2e3f4a5b6c7d",
+          "item": [
+            {
+              "name": "Admin Login",
+              "id": "b3c4d5e6-f7a8-4190-ad2e-3f4a5b6c7d8e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"email\": \"admin@example.com\", \"password\": \"password\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "auth", "login"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has token and admin info\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"token\"); pm.expect(json).to.have.property(\"id\"); pm.expect(json).to.have.property(\"email\"); });",
+                      "const json = pm.response.json(); if (json.token) { pm.collectionVariables.set(\"adminToken\", json.token); console.log(\"Admin token saved to collection variable.\"); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Current Admin",
+              "id": "c4d5e6f7-a8b9-4201-be3f-4a5b6c7d8e9f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "auth", "me"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has admin id and email\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"id\"); pm.expect(json).to.have.property(\"email\"); pm.expect(json.id).to.be.a(\"string\"); pm.expect(json.email).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Admin Logout",
+              "id": "d5e6f7a8-b9c0-4312-cf40-5b6c7d8e9f0a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "auth", "logout"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Customers",
+          "id": "e6f7a8b9-c0d1-4423-d051-6c7d8e9f0a1b",
+          "item": [
+            {
+              "name": "List Customers",
+              "id": "f7a8b9c0-d1e2-4534-e162-7d8e9f0a1b2c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "customers"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has customers array\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"customers\"); pm.expect(json.customers).to.be.an(\"array\"); });",
+                      "const json = pm.response.json(); if (json.customers && json.customers.length > 0) { pm.collectionVariables.set(\"customerId\", json.customers[0].id); console.log(\"customerId saved: \" + json.customers[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Customer",
+              "id": "a8b9c0d1-e2f3-4645-f273-8e9f0a1b2c3d",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "customers", "{{customerId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has customer with expected properties\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"customer\"); pm.expect(json.customer).to.have.property(\"id\"); pm.expect(json.customer).to.have.property(\"email\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Customer",
+              "id": "b9c0d1e2-f3a4-4756-a384-9f0a1b2c3d4e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"firstName\": \"Jane\", \"lastName\": \"Doe\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "customers", "{{customerId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has updated customer\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"customer\"); pm.expect(json.customer).to.have.property(\"id\"); pm.expect(json.customer).to.have.property(\"email\"); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Notifications",
+          "id": "c0d1e2f3-a4b5-4867-b495-0a1b2c3d4e5f",
+          "item": [
+            {
+              "name": "List Notifications",
+              "id": "d1e2f3a4-b5c6-4978-c5a6-1b2c3d4e5f6a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/notifications",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "notifications"],
+                  "query": [
+                    { "key": "filter", "value": "all", "disabled": true }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has notifications array and summary\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"notifications\"); pm.expect(json.notifications).to.be.an(\"array\"); pm.expect(json).to.have.property(\"summary\"); });",
+                      "const json = pm.response.json(); if (json.notifications && json.notifications.length > 0) { pm.collectionVariables.set(\"notificationId\", json.notifications[0].id); console.log(\"notificationId saved: \" + json.notifications[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Notification Status",
+              "id": "e2f3a4b5-c6d7-4089-d6b7-2c3d4e5f6a7b",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"status\": \"read\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/notifications/{{notificationId}}/status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "notifications", "{{notificationId}}", "status"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has updated notification\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"notification\"); pm.expect(json.notification).to.have.property(\"id\"); pm.expect(json.notification).to.have.property(\"status\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark All Notifications Read",
+              "id": "f3a4b5c6-d7e8-4190-e7c8-3d4e5f6a7b8c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/notifications/mark-all-read",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "notifications", "mark-all-read"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response confirms success\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"ok\"); pm.expect(json.ok).to.eql(true); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Orders",
+          "id": "a4b5c6d7-e8f9-4201-f8d9-4e5f6a7b8c9d",
+          "item": [
+            {
+              "name": "List Orders",
+              "id": "b5c6d7e8-f9a0-4312-a9e0-5f6a7b8c9d0e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "orders"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has orders array\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"orders\"); pm.expect(json.orders).to.be.an(\"array\"); });",
+                      "const json = pm.response.json(); if (json.orders && json.orders.length > 0) { pm.collectionVariables.set(\"orderId\", json.orders[0].id); console.log(\"orderId saved: \" + json.orders[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Order",
+              "id": "c6d7e8f9-a0b1-4423-b0f1-6a7b8c9d0e1f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "orders", "{{orderId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has order with expected properties\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"order\"); pm.expect(json.order).to.have.property(\"id\"); pm.expect(json.order).to.have.property(\"status\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Order Status",
+              "id": "d7e8f9a0-b1c2-4534-c102-7b8c9d0e1f2a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"status\": \"packed\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}/status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "orders", "{{orderId}}", "status"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has order with updated status\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"order\"); pm.expect(json.order).to.have.property(\"id\"); pm.expect(json.order).to.have.property(\"status\"); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Products",
+          "id": "e8f9a0b1-c2d3-4645-d213-8c9d0e1f2a3b",
+          "item": [
+            {
+              "name": "List Products",
+              "id": "f9a0b1c2-d3e4-4756-e324-9d0e1f2a3b4c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has products array\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"products\"); pm.expect(json.products).to.be.an(\"array\"); });",
+                      "const json = pm.response.json(); if (json.products && json.products.length > 0) { pm.collectionVariables.set(\"productId\", json.products[0].id); console.log(\"productId saved: \" + json.products[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Product",
+              "id": "a0b1c2d3-e4f5-4867-f435-0e1f2a3b4c5d",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"name\": \"Sample Product\", \"sku\": \"SKU-999\", \"description\": \"A sample product description\", \"price\": 29.99, \"stock\": 100, \"status\": \"draft\", \"visibility\": \"public\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                      "pm.test(\"Response has product with id\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"product\"); pm.expect(json.product).to.have.property(\"id\"); pm.expect(json.product).to.have.property(\"name\"); pm.expect(json.product).to.have.property(\"sku\"); pm.expect(json.product).to.have.property(\"price\"); });",
+                      "const json = pm.response.json(); if (json.product && json.product.id) { pm.collectionVariables.set(\"productId\", json.product.id); console.log(\"productId saved: \" + json.product.id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Product",
+              "id": "b1c2d3e4-f5a6-4978-a546-1f2a3b4c5d6e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products/{{productId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products", "{{productId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has product\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"product\"); pm.expect(json.product).to.have.property(\"id\"); pm.expect(json.product).to.have.property(\"name\"); pm.expect(json.product).to.have.property(\"price\"); pm.expect(json.product).to.have.property(\"status\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Product",
+              "id": "c2d3e4f5-a6b7-4089-b657-2a3b4c5d6e7f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"name\": \"Updated Product Name1\", \"price\": 34.99, \"stock\": 80, \"status\": \"active\", \"visibility\": \"public\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products/{{productId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products", "{{productId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has updated product\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"product\"); pm.expect(json.product).to.have.property(\"id\"); pm.expect(json.product).to.have.property(\"name\"); pm.expect(json.product).to.have.property(\"updatedAt\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Upload Product Image",
+              "id": "d3e4f5a6-b7c8-4190-c768-3b4c5d6e7f8a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "/home/polar/repos/IFQ636-A2/apps/storefront/public/flowers.png"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products/{{productId}}/images",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products", "{{productId}}", "images"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                      "pm.test(\"Response has imageUrl\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"imageUrl\"); pm.expect(json.imageUrl).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete Product Image",
+              "id": "e4f5a6b7-c8d9-4201-d879-4c5d6e7f8a9b",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products/{{productId}}/image",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "products", "{{productId}}", "image"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has product with cleared image\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"product\"); pm.expect(json.product).to.have.property(\"id\"); pm.expect(json.product.imageUrl).to.be.oneOf([null, undefined, \"\"]); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Storefront",
+      "id": "f5a6b7c8-d9e0-4312-e980-5d6e7f8a9b0c",
+      "item": [
+        {
+          "name": "Auth",
+          "id": "a6b7c8d9-e0f1-4423-f091-6e7f8a9b0c1d",
+          "item": [
+            {
+              "name": "Customer Login",
+              "id": "b7c8d9e0-f1a2-4534-a1a2-7f8a9b0c1d2e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"email\": \"customer@example.com\", \"password\": \"password\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "auth", "login"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has token and customer info\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"token\"); pm.expect(json).to.have.property(\"customer\"); pm.expect(json.customer).to.have.property(\"id\"); pm.expect(json.customer).to.have.property(\"email\"); });",
+                      "const json = pm.response.json(); if (json.token) { pm.collectionVariables.set(\"customerToken\", json.token); console.log(\"Customer token saved to collection variable.\"); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Current Customer",
+              "id": "c8d9e0f1-a2b3-4645-b2b3-8a9b0c1d2e3f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "auth", "me"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has customer info\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"customer\"); pm.expect(json.customer).to.have.property(\"id\"); pm.expect(json.customer).to.have.property(\"email\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Customer Logout",
+              "id": "d9e0f1a2-b3c4-4756-c3c4-9b0c1d2e3f4a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "auth", "logout"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Customers",
+          "id": "e0f1a2b3-c4d5-4867-d4d5-0c1d2e3f4a5b",
+          "item": [
+            {
+              "name": "Register Customer",
+              "id": "f1a2b3c4-d5e6-4978-e5e6-1d2e3f4a5b6c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"firstName\": \"John\", \"lastName\": \"Smith\", \"email\": \"johnsmith@example.com\", \"password\": \"securepassword123\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/customers",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "customers"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                      "pm.test(\"Response has customer with expected properties\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"customer\"); pm.expect(json.customer).to.have.property(\"id\"); pm.expect(json.customer).to.have.property(\"email\"); pm.expect(json.customer).to.have.property(\"firstName\"); pm.expect(json.customer).to.have.property(\"lastName\"); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Orders",
+          "id": "a2b3c4d5-e6f7-4089-f6f7-2e3f4a5b6c7d",
+          "item": [
+            {
+              "name": "Get Order History",
+              "id": "b3c4d5e6-f7a8-4190-a7a8-3f4a5b6c7d8e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "orders"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has orders array\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"orders\"); pm.expect(json.orders).to.be.an(\"array\"); });",
+                      "const json = pm.response.json(); if (json.orders && json.orders.length > 0) { pm.collectionVariables.set(\"orderId\", json.orders[0].id); console.log(\"orderId saved: \" + json.orders[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Order Detail",
+              "id": "c4d5e6f7-a8b9-4201-b8b9-4a5b6c7d8e9f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/orders/{{orderId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "orders", "{{orderId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has order with expected properties\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"order\"); pm.expect(json.order).to.have.property(\"id\"); pm.expect(json.order).to.have.property(\"status\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Checkout Session",
+              "id": "d5e6f7a8-b9c0-4312-c9c0-5b6c7d8e9f0a",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"customer\": { \"firstName\": \"John\", \"lastName\": \"Smith\", \"email\": \"john.smith@example.com\", \"phone\": null }, \"deliveryAddress\": { \"recipientName\": \"John Smith\", \"addressLine1\": \"123 Main St\", \"addressLine2\": null, \"suburb\": \"Brisbane\", \"state\": \"QLD\", \"postcode\": \"4000\", \"instructions\": null }, \"items\": [ { \"productId\": \"{{productId}}\", \"quantity\": 1 } ], \"paymentMethod\": \"stripe\" }",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/orders/checkout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "orders", "checkout"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                      "pm.test(\"Response has checkout session URL\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"redirectUrl\"); });",
+                      "pm.test(\"Response has order ID\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"orderId\"); });",
+                      "const json = pm.response.json(); if (json.orderId) { pm.collectionVariables.set(\"orderId\", json.orderId); console.log(\"orderId saved: \" + json.orderId); } if (json.redirectUrl) { try { const url = new URL(json.redirectUrl); const sessionId = url.pathname.split(\"/\").pop(); if (sessionId) { pm.collectionVariables.set(\"sessionId\", sessionId); console.log(\"sessionId saved: \" + sessionId); } } catch (e) { console.error(\"Failed to extract sessionId from redirectUrl: \" + e.message); } }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Checkout Success Callback",
+              "id": "e6f7a8b9-c0d1-4423-d0d1-6c7d8e9f0a1b",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/orders/checkout/:paymentMethod/success?orderId={{orderId}}&session_id={{sessionId}}&token=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "orders", "checkout", ":paymentMethod", "success"],
+                  "variable": [
+                    { "key": "paymentMethod", "value": "stripe" }
+                  ],
+                  "query": [
+                    { "key": "orderId", "value": "{{orderId}}" },
+                    { "key": "session_id", "value": "{{sessionId}}" },
+                    { "key": "token", "value": "", "disabled": true }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 302 redirect\", function () { pm.response.to.have.status(302); });",
+                      "pm.test(\"Redirects to success page\", function () { const location = pm.response.headers.get(\"Location\"); pm.expect(location).to.include(\"payment=success\"); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Checkout Cancel Callback",
+              "id": "f7a8b9c0-d1e2-4534-e1e2-7d8e9f0a1b2c",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/orders/checkout/:paymentMethod/cancel?orderId={{orderId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "orders", "checkout", ":paymentMethod", "cancel"],
+                  "variable": [
+                    { "key": "paymentMethod", "value": "stripe" }
+                  ],
+                  "query": [
+                    { "key": "orderId", "value": "{{orderId}}" }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 302 redirect\", function () { pm.response.to.have.status(302); });",
+                      "pm.test(\"Redirects to cancel page\", function () { const location = pm.response.headers.get(\"Location\"); pm.expect(location).to.include(\"payment=cancelled\"); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Products",
+          "id": "a8b9c0d1-e2f3-4645-f2f3-8e9f0a1b2c3d",
+          "item": [
+            {
+              "name": "List Products",
+              "id": "b9c0d1e2-f3a4-4756-a3a4-9f0a1b2c3d4e",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "products"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has products array\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"products\"); pm.expect(json.products).to.be.an(\"array\"); });",
+                      "const json = pm.response.json(); if (json.products && json.products.length > 0) { pm.collectionVariables.set(\"productId\", json.products[0].id); console.log(\"productId saved: \" + json.products[0].id); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Product Detail",
+              "id": "c0d1e2f3-a4b5-4867-b4b5-0a1b2c3d4e5f",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/storefront/products/{{productId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "storefront", "products", "{{productId}}"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response has product with expected properties\", function () { const json = pm.response.json(); pm.expect(json).to.have.property(\"product\"); pm.expect(json.product).to.have.property(\"id\"); pm.expect(json.product).to.have.property(\"name\"); pm.expect(json.product).to.have.property(\"price\"); pm.expect(json.product).to.have.property(\"sku\"); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
