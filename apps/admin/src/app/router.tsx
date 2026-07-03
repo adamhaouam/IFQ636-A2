@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 
 import { RequireAdmin, requireAdminSession } from "../modules/auth";
 import { customerEditLoader, customerListLoader } from "../modules/customers";
+import { notificationListLoader } from "../modules/notifications";
 import { orderDetailLoader, orderListLoader } from "../modules/orders";
 import { productEditLoader, productListLoader } from "../modules/products";
 import { settingsLoader } from "../modules/settings";
@@ -12,6 +13,7 @@ import { CatalogueListPage } from "./routes/catalog/list.page";
 import { CustomerEditPage } from "./routes/customers/edit.page";
 import { CustomerListPage } from "./routes/customers/list.page";
 import { LoginPage } from "./routes/login/login.page";
+import { NotificationListPage } from "./routes/notifications/list.page";
 import { OrderDetailPage } from "./routes/orders/detail.page";
 import { OrderListPage } from "./routes/orders/list.page";
 import { PublicLayout } from "./routes/public.layout";
@@ -72,6 +74,11 @@ export const router = createBrowserRouter(
                   path: "orders/:orderId",
                   loader: orderDetailLoader,
                   element: <OrderDetailPage />,
+                },
+                {
+                  path: "notifications",
+                  loader: notificationListLoader,
+                  element: <NotificationListPage />,
                 },
                 {
                   path: "settings",

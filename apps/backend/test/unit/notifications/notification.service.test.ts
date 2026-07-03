@@ -199,7 +199,7 @@ describe("NotificationService", () => {
     expect(repository.createdInputs).to.deep.equal([
       {
         action: "received",
-        message: "Order #order-1001 from storefront checkout",
+        message: "Order #ORD-000001 from storefront checkout",
         resource: "orders",
         resourceId: "order-1001",
         title: "New order received",
@@ -222,7 +222,7 @@ describe("NotificationService", () => {
     expect(repository.createdInputs).to.deep.equal([
       {
         action: "status_changed",
-        message: "Order #order-1001 marked as packed",
+        message: "Order #ORD-000001 marked as packed",
         resource: "orders",
         resourceId: "order-1001",
         title: "Order status changed",

@@ -103,11 +103,16 @@ function normalizeOrderItemPricing(item: OrderItem): OrderItem {
   const membershipDiscountApplied = legacyItem.membershipDiscountApplied ?? false;
 
   return {
-    ...item,
+    productId: item.productId,
+    name: item.name,
+    sku: item.sku,
+    imageUrl: item.imageUrl ?? null,
     basePrice,
+    price: item.price,
     discountAmount,
     discountRate,
     membershipDiscountApplied,
+    quantity: item.quantity,
     lineTotal: item.lineTotal ?? item.price * item.quantity,
   };
 }
