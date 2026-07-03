@@ -1,17 +1,20 @@
 import { Button, Input, SidebarProvider, SidebarTrigger } from "@otbt/ui";
 import { ServerEventsProvider } from "@otbt/web";
-import { Bell, MessageSquareMore, Package2, Search } from "lucide-react";
+import { MessageSquareMore, Package2, Search } from "lucide-react";
 import { Outlet, useNavigate } from "react-router";
 
 import { AdminSidebar } from "../../components/sidebar";
 import { AccountMenu } from "../../modules/admin-shell";
 import { useAuth } from "../../modules/auth";
-import { useServerEventTestToast } from "../../modules/server-event-tests/hooks/use-server-event-test-toast";
+import {
+  NotificationBell,
+  useNotificationEvents,
+} from "../../modules/notifications";
 
 export function AdminLayout() {
   const { adminUser, logout } = useAuth();
   const navigate = useNavigate();
-  useServerEventTestToast();
+  useNotificationEvents();
 
   function handleLogout() {
     logout();
@@ -41,10 +44,7 @@ export function AdminLayout() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button size="icon" variant="ghost">
-                  <Bell className="size-4" />
-                  <span className="sr-only">Notifications</span>
-                </Button>
+                <NotificationBell />
                 <Button size="icon" variant="ghost">
                   <MessageSquareMore className="size-4" />
                   <span className="sr-only">Messages</span>

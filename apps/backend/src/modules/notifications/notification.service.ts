@@ -17,6 +17,10 @@ import {
   type NotificationRepository,
 } from "./notification.repository.js";
 
+function getOrderDisplayNumber(order: Order) {
+  return order.orderNumber || order.id;
+}
+
 function serializeNotification(
   notification: NotificationDocument,
 ): NotificationItem {
@@ -49,9 +53,11 @@ export class NotificationService {
   }
 
   async recordOrderReceived(order: Order) {
+    const orderDisplayNumber = getOrderDisplayNumber(order);
+
     return await this.createAndPublish({
       action: "received",
-      message: `Order #${order.id} from storefront checkout`,
+      message: `Order #${orderDisplayNumber} from storefront checkout`,
       resource: "orders",
       resourceId: order.id,
       title: "New order received",
@@ -60,9 +66,11 @@ export class NotificationService {
   }
 
   async recordOrderStatusChanged(order: Order) {
+    const orderDisplayNumber = getOrderDisplayNumber(order);
+
     return await this.createAndPublish({
       action: "status_changed",
-      message: `Order #${order.id} marked as ${order.status}`,
+      message: `Order #${orderDisplayNumber} marked as ${order.status}`,
       resource: "orders",
       resourceId: order.id,
       title: "Order status changed",

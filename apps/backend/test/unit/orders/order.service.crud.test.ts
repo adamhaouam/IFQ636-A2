@@ -64,6 +64,25 @@ function createOrderItem(overrides: Partial<OrderDocument["items"][number]> = {}
   };
 }
 
+function createMongooseLikeOrderItem(
+  overrides: Partial<OrderDocument["items"][number]> = {},
+) {
+  const item = {};
+
+  for (const [key, value] of Object.entries({
+    ...createOrderItem(),
+    ...overrides,
+  })) {
+    Object.defineProperty(item, key, {
+      configurable: true,
+      enumerable: false,
+      value,
+    });
+  }
+
+  return item as OrderDocument["items"][number];
+}
+
 function createOrderDocument(
   overrides: Partial<OrderRecord> = {},
 ): OrderRecord & { save: sinon.SinonStub } {
@@ -177,6 +196,34 @@ describe("order.service CRUD", () => {
 
       expect(order.payment?.status).to.equal("paid");
       expect(verifyStub.called).to.equal(false);
+    });
+
+    it("preserves item display fields when serializing stored order items", async () => {
+      sinon.stub(OrderModel, "findById").returns(
+        fakeQuery(
+          createOrderDocument({
+            items: [createMongooseLikeOrderItem()],
+            payment: {
+              provider: "stripe",
+              status: "paid",
+              amount: 20,
+              currency: "aud",
+              checkoutSessionId: "sess_123",
+              paymentIntentId: "pi_123",
+            },
+          }),
+        ) as never,
+      );
+
+      const order = await confirmCheckoutOrder(ORDER_ID, "sess_123");
+
+      expect(order.items[0]).to.include({
+        imageUrl: "/uploads/products/thorn.png",
+        name: "Thorn Bouquet",
+        productId: PRODUCT_ID,
+        quantity: 1,
+        sku: "THN-001",
+      });
     });
 
     it("throws when the checkout session id does not match", async () => {
