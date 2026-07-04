@@ -17,12 +17,31 @@ const statusConfig: Record<
   shipped: { variant: "outline", label: "Shipped" },
 };
 
-const paymentStatusConfig: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-700" },
-  paid: { label: "Approved", className: "rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700" },
-  declined: { label: "Declined", className: "rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700" },
+const paymentStatusConfig: Record<
+  string,
+  {
+    className: string;
+    label: string;
+    variant: ComponentProps<typeof Badge>["variant"];
+  }
+> = {
+  declined: {
+    className: "border-transparent bg-red-100 text-red-700 hover:bg-red-100",
+    label: "Declined",
+    variant: "secondary",
+  },
+  paid: {
+    className: "border-transparent bg-green-100 text-green-700 hover:bg-green-100",
+    label: "Approved",
+    variant: "secondary",
+  },
+  pending: {
+    className:
+      "border-transparent bg-orange-100 text-orange-700 hover:bg-orange-100",
+    label: "Pending",
+    variant: "secondary",
+  },
 };
-
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   currency: "AUD",
@@ -43,20 +62,23 @@ export function OrderList({ orders }: OrderListProps) {
 
   return (
     <div className="w-full overflow-auto">
-      <table className="w-full min-w-[980px] table-fixed caption-bottom text-sm">
+      <table className="w-full min-w-[1060px] table-fixed caption-bottom text-sm">
         <thead className="[&_tr]:border-b">
           <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-            <th className="h-12 w-[24%] px-4 text-left align-middle font-medium text-muted-foreground">
+            <th className="h-12 w-[20%] px-4 text-left align-middle font-medium text-muted-foreground">
               Order
             </th>
-            <th className="h-12 w-[24%] px-4 text-left align-middle font-medium text-muted-foreground">
+            <th className="h-12 w-[21%] px-4 text-left align-middle font-medium text-muted-foreground">
               Customer
             </th>
-            <th className="h-12 w-[22%] px-4 text-left align-middle font-medium text-muted-foreground">
+            <th className="h-12 w-[21%] px-4 text-left align-middle font-medium text-muted-foreground">
               Items
             </th>
-            <th className="h-12 w-[12%] px-4 text-left align-middle font-medium text-muted-foreground">
+            <th className="h-12 w-[10%] px-4 text-left align-middle font-medium text-muted-foreground">
               Status
+            </th>
+            <th className="h-12 w-[10%] px-4 text-left align-middle font-medium text-muted-foreground">
+              Payment
             </th>
             <th className="h-12 w-[10%] px-4 text-right align-middle font-medium text-muted-foreground">
               Total
@@ -69,7 +91,8 @@ export function OrderList({ orders }: OrderListProps) {
         <tbody className="[&_tr:last-child]:border-0">
           {orders.map((order) => {
             const status = statusConfig[order.status];
-            order.paymentStatus = order.paymentStatus || "pending"; // Default to "pending" if paymentStatus is undefined
+            const paymentStatus =
+              paymentStatusConfig[order.paymentStatus ?? "pending"];
             
             return (
               <tr
@@ -94,10 +117,19 @@ export function OrderList({ orders }: OrderListProps) {
                 <td className="whitespace-nowrap p-4 align-middle">
                   <Badge variant={status.variant}>{status.label}</Badge>
                 </td>
+                <td className="whitespace-nowrap p-4 align-middle">
+                  {paymentStatus ? (
+                    <Badge
+                      className={paymentStatus.className}
+                      variant={paymentStatus.variant}
+                    >
+                      {paymentStatus.label}
+                    </Badge>
+                  ) : null}
+                </td>
                 <td className="p-4 text-right align-middle font-medium">
-                  <p className="font-medium text-foreground">{currencyFormatter.format(order.total)}</p>
-                  <p className={paymentStatusConfig[order.paymentStatus]?.className}>
-                    {paymentStatusConfig[order.paymentStatus]?.label}
+                  <p className="font-medium text-foreground">
+                    {currencyFormatter.format(order.total)}
                   </p>
                 </td>
                 <td className="whitespace-nowrap p-4 text-right align-middle text-muted-foreground">
