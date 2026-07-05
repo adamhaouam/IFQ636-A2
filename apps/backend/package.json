@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --include ../../packages/types/src --include .env src/server.ts",
+    "dev:email-worker": "tsx watch --include ../../packages/types/src --include .env src/email-worker.ts",
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test:typecheck": "tsc --noEmit -p tsconfig.test.json",
     "test": "pnpm run test:typecheck && mocha --import=tsx \"test/**/*.test.ts\"",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "start:email-worker": "node dist/email-worker.js"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
