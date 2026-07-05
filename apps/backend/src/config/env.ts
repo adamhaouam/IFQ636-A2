@@ -67,6 +67,11 @@ export const env = {
     return required("PAYPAL_CLIENT_ID");
   },
   uploadsDir: process.env.UPLOADS_DIR ?? path.resolve(process.cwd(), "uploads"),
+  redis: {
+    host: process.env.REDIS_HOST ?? "localhost",
+    password: optional("REDIS_PASSWORD"),
+    port: numberValue("REDIS_PORT", 6380) ?? 6380,
+  },
   email: {
     enabled: booleanValue("EMAIL_ENABLED", false),
     host: optional("SMTP_HOST"),

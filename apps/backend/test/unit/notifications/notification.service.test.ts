@@ -9,6 +9,10 @@ import {
   type NotificationStatusUpdate,
 } from "../../../src/modules/notifications/index.js";
 import type { NotificationItem, Order } from "@otbt/types";
+import type {
+  EmailDispatcher,
+} from "../../../src/modules/email/email.dispatcher.js";
+import type { EmailJob } from "../../../src/modules/email/email.queue.js";
 
 function createDocument(
   overrides: Partial<NotificationDocument> = {},
@@ -83,6 +87,14 @@ class FakeNotificationPublisher {
 
   publishUpdated(notification: NotificationItem) {
     this.updated.push(notification);
+  }
+}
+
+class FakeEmailDispatcher implements EmailDispatcher {
+  jobs: EmailJob[] = [];
+
+  dispatch(job: EmailJob) {
+    this.jobs.push(job);
   }
 }
 
@@ -192,7 +204,8 @@ describe("NotificationService", () => {
   it("records an order received notification and publishes it", async () => {
     const repository = new FakeNotificationRepository();
     const publisher = new FakeNotificationPublisher();
-    const service = new NotificationService(repository, publisher);
+    const emails = new FakeEmailDispatcher();
+    const service = new NotificationService(repository, publisher, emails);
 
     const notification = await service.recordOrderReceived(createOrder());
 
@@ -208,15 +221,21 @@ describe("NotificationService", () => {
     ]);
     expect(publisher.created).to.deep.equal([notification]);
     expect(publisher.updated).to.deep.equal([]);
+    expect(emails.jobs).to.have.length(1);
+    expect(emails.jobs[0]).to.deep.include({
+      type: "order-confirmation",
+    });
   });
 
   it("records an order status notification and publishes it", async () => {
     const repository = new FakeNotificationRepository();
     const publisher = new FakeNotificationPublisher();
-    const service = new NotificationService(repository, publisher);
+    const emails = new FakeEmailDispatcher();
+    const service = new NotificationService(repository, publisher, emails);
 
     const notification = await service.recordOrderStatusChanged(
       createOrder({ status: "packed" }),
+      "pending",
     );
 
     expect(repository.createdInputs).to.deep.equal([
@@ -231,6 +250,11 @@ describe("NotificationService", () => {
     ]);
     expect(publisher.created).to.deep.equal([notification]);
     expect(publisher.updated).to.deep.equal([]);
+    expect(emails.jobs).to.have.length(1);
+    expect(emails.jobs[0]).to.deep.include({
+      previousStatus: "pending",
+      type: "order-status-update",
+    });
   });
 
   it("publishes notification status updates", async () => {

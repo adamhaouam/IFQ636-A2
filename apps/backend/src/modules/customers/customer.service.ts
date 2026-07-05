@@ -2,10 +2,8 @@ import type { Customer, CustomerUpdate } from "@otbt/types";
 import { isValidObjectId } from "mongoose";
 
 import { HttpError } from "../../middleware/error-handler.js";
-import { sendEmail } from "../email/email.service.js";
-import { renderRegisteredEmailTemplate } from "../email/email.templates.js";
+import { emailDispatcher } from "../email/email.dispatcher.js";
 import { CustomerModel, type CustomerDocument } from "./customer.model.js";
-import { customerEmailRegistry } from "./emails/email.registry.js";
 import {
   hashCustomerPassword,
   verifyCustomerPassword,
@@ -35,42 +33,6 @@ function serializeCustomer(customer: CustomerRecord): Customer {
   };
 }
 
-function resolveStorefrontUrl(pathname: string) {
-  const storefrontOrigin =
-    process.env.STOREFRONT_ORIGIN ??
-    (process.env.NGINX_PORT ? `http://localhost:${process.env.NGINX_PORT}` : undefined);
-
-  return storefrontOrigin ? `${storefrontOrigin}${pathname}` : pathname;
-}
-
-async function sendCustomerRegistrationEmail(customer: Customer) {
-  try {
-    const renderedEmail = await renderRegisteredEmailTemplate({
-      emailType: "Customer account",
-      preheader: "Your Order of the Black Thorn customer account is ready.",
-      subject: "Your account is ready",
-      template: customerEmailRegistry.accountRegistration,
-      values: {
-        customerEmail: customer.email,
-        customerFirstName: customer.firstName,
-        signInLink: resolveStorefrontUrl("/login"),
-      },
-    });
-
-    return await sendEmail({
-      ...renderedEmail,
-      to: customer.email,
-    });
-  } catch (error) {
-    console.error("Failed to send customer registration email", error);
-
-    return {
-      reason: "Customer registration email failed",
-      status: "skipped" as const,
-    };
-  }
-}
-
 export async function registerCustomer(
   customerRegistration: CustomerRegistration,
 ): Promise<Customer> {
@@ -91,7 +53,10 @@ export async function registerCustomer(
   });
   const registeredCustomer = serializeCustomer(customer);
 
-  await sendCustomerRegistrationEmail(registeredCustomer);
+  emailDispatcher.dispatch({
+    customer: registeredCustomer,
+    type: "customer-registration",
+  });
 
   return registeredCustomer;
 }

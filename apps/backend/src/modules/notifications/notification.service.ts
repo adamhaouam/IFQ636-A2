@@ -3,8 +3,13 @@ import type {
   NotificationItem,
   NotificationSummary,
   Order,
+  OrderStatus,
 } from "@otbt/types";
 
+import {
+  emailDispatcher,
+  type EmailDispatcher,
+} from "../email/email.dispatcher.js";
 import type { NotificationDocument } from "./notification.model.js";
 import {
   NotificationPublisher,
@@ -45,6 +50,7 @@ export class NotificationService {
       new MongoNotificationRepository(),
     private readonly publisher: NotificationEventPublisher =
       new NotificationPublisher(),
+    private readonly emails: EmailDispatcher = emailDispatcher,
   ) {}
 
   async create(input: NotificationCreateInput) {
@@ -55,7 +61,7 @@ export class NotificationService {
   async recordOrderReceived(order: Order) {
     const orderDisplayNumber = getOrderDisplayNumber(order);
 
-    return await this.createAndPublish({
+    const notification = await this.createAndPublish({
       action: "received",
       message: `Order #${orderDisplayNumber} from storefront checkout`,
       resource: "orders",
@@ -63,12 +69,22 @@ export class NotificationService {
       title: "New order received",
       type: "order",
     });
+
+    this.emails.dispatch({
+      order,
+      type: "order-confirmation",
+    });
+
+    return notification;
   }
 
-  async recordOrderStatusChanged(order: Order) {
+  async recordOrderStatusChanged(
+    order: Order,
+    previousStatus: OrderStatus,
+  ) {
     const orderDisplayNumber = getOrderDisplayNumber(order);
 
-    return await this.createAndPublish({
+    const notification = await this.createAndPublish({
       action: "status_changed",
       message: `Order #${orderDisplayNumber} marked as ${order.status}`,
       resource: "orders",
@@ -76,6 +92,14 @@ export class NotificationService {
       title: "Order status changed",
       type: "order",
     });
+
+    this.emails.dispatch({
+      order,
+      previousStatus,
+      type: "order-status-update",
+    });
+
+    return notification;
   }
 
   async list(filter: NotificationFilter = "all") {

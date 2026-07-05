@@ -12,6 +12,7 @@
     "dev:storefront": "pnpm --filter @otbt/storefront dev",
     "dev:admin": "pnpm --filter @otbt/admin dev",
     "dev:backend": "pnpm --filter @otbt/backend dev",
+    "dev:email-worker": "pnpm --filter @otbt/backend dev:email-worker",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm --filter @otbt/backend test",

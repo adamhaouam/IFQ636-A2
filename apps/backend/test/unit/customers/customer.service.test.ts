@@ -2,6 +2,9 @@ import { expect } from "chai";
 import sinon from "sinon";
 
 import { HttpError } from "../../../src/middleware/error-handler.js";
+import {
+  emailDispatcher,
+} from "../../../src/modules/email/email.dispatcher.js";
 import { CustomerModel, type CustomerDocument } from "../../../src/modules/customers/customer.model.js";
 import {
   getCustomer,
@@ -47,6 +50,7 @@ describe("customer.service", () => {
       const createStub = sinon
         .stub(CustomerModel, "create")
         .resolves(createDocument({ email: "new@example.com" }) as never);
+      const dispatchStub = sinon.stub(emailDispatcher, "dispatch");
 
       const customer = await registerCustomer({
         firstName: "  Mara  ",
@@ -70,6 +74,10 @@ describe("customer.service", () => {
       expect(createInput.email).to.equal("new@example.com");
       expect(createInput.passwordHash).to.not.equal("correct-horse-battery-staple");
       expect(createInput.passwordHash).to.match(/^\$2[aby]\$/);
+      expect(dispatchStub.calledOnce).to.equal(true);
+      expect(dispatchStub.firstCall.args[0]).to.deep.include({
+        type: "customer-registration",
+      });
     });
 
     it("rejects registration when the email is already taken", async () => {
