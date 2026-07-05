@@ -338,11 +338,17 @@ describe("order.service CRUD", () => {
       expect(findStub.called).to.equal(false);
     });
 
-    it("returns the customer's order history", async () => {
-      sinon.stub(OrderModel, "find").returns(fakeQuery([createOrderDocument()]) as never);
+    it("returns the customer's paid order history", async () => {
+      const findStub = sinon
+        .stub(OrderModel, "find")
+        .returns(fakeQuery([createOrderDocument()]) as never);
 
       const orders = await listOrdersForCustomer("customer-1");
 
+      expect((findStub.firstCall.args as unknown[])[0]).to.deep.equal({
+        "customer.customerId": "customer-1",
+        "payment.status": "paid",
+      });
       expect(orders).to.have.length(1);
       expect(orders[0].id).to.equal(ORDER_ID);
     });
@@ -358,11 +364,18 @@ describe("order.service CRUD", () => {
       expect(findOneStub.called).to.equal(false);
     });
 
-    it("returns the order when found", async () => {
-      sinon.stub(OrderModel, "findOne").returns(fakeQuery(createOrderDocument()) as never);
+    it("returns the paid order when found", async () => {
+      const findOneStub = sinon
+        .stub(OrderModel, "findOne")
+        .returns(fakeQuery(createOrderDocument()) as never);
 
       const order = await getOrderForCustomer(ORDER_ID, "customer-1");
 
+      expect((findOneStub.firstCall.args as unknown[])[0]).to.deep.equal({
+        _id: ORDER_ID,
+        "customer.customerId": "customer-1",
+        "payment.status": "paid",
+      });
       expect(order?.id).to.equal(ORDER_ID);
     });
 
@@ -504,7 +517,7 @@ describe("order lifecycle service", () => {
     expect(findStub.called).to.equal(false);
   });
 
-  it("fetches an order only when it belongs to the customer", async () => {
+  it("fetches an order only when it belongs to the customer and has been paid", async () => {
     const findOneStub = sinon
       .stub(OrderModel, "findOne")
       .returns(fakeQuery(createOrderDocument()) as never);
@@ -514,6 +527,7 @@ describe("order lifecycle service", () => {
     expect((findOneStub.firstCall.args as unknown[])[0]).to.deep.equal({
       _id: ORDER_ID,
       "customer.customerId": "customer-1",
+      "payment.status": "paid",
     });
   });
 

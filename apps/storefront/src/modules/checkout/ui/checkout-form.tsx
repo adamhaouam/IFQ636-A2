@@ -256,6 +256,12 @@ export function CheckoutForm() {
         </Button>
       </div>
 
+      {cancelledOrderId ? (
+        <div className="mb-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+          Payment was cancelled. Review your payment details and try again.
+        </div>
+      ) : null}
+
       <form
         className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]"
         onSubmit={handleSubmit}
@@ -496,8 +502,8 @@ export function CheckoutForm() {
             </span>
           </div>
           {cancelledOrderId ? (
-            <p className="mt-4 text-sm text-destructive">
-              Payment was cancelled. Your order was not completed.
+            <p className="mt-4 rounded-md border border-orange-300/30 bg-orange-300/10 px-3 py-2 text-sm text-orange-200">
+              Payment was cancelled. Review your payment details and try again.
             </p>
           ) : null}
           {checkoutMutation.isError ? (

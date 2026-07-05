@@ -25,9 +25,9 @@ const paymentStatusConfig: Record<
     variant: ComponentProps<typeof Badge>["variant"];
   }
 > = {
-  declined: {
+  failed: {
     className: "border-transparent bg-red-100 text-red-700 hover:bg-red-100",
-    label: "Declined",
+    label: "Cancelled",
     variant: "secondary",
   },
   paid: {
@@ -38,7 +38,7 @@ const paymentStatusConfig: Record<
   pending: {
     className:
       "border-transparent bg-orange-100 text-orange-700 hover:bg-orange-100",
-    label: "Pending",
+    label: "Awaiting payment",
     variant: "secondary",
   },
 };

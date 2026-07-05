@@ -20,6 +20,32 @@ const statusConfig: Record<
   shipped: { variant: "outline", label: "Shipped" },
 };
 
+const paymentStatusConfig: Record<
+  string,
+  {
+    className: string;
+    label: string;
+    variant: ComponentProps<typeof Badge>["variant"];
+  }
+> = {
+  failed: {
+    className: "border-transparent bg-red-100 text-red-700 hover:bg-red-100",
+    label: "Cancelled",
+    variant: "secondary",
+  },
+  paid: {
+    className: "border-transparent bg-green-100 text-green-700 hover:bg-green-100",
+    label: "Approved",
+    variant: "secondary",
+  },
+  pending: {
+    className:
+      "border-transparent bg-orange-100 text-orange-700 hover:bg-orange-100",
+    label: "Awaiting payment",
+    variant: "secondary",
+  },
+};
+
 function formatAddress(order: Order) {
   return [
     order.deliveryAddress.addressLine1,
@@ -30,6 +56,7 @@ function formatAddress(order: Order) {
 
 export function OrderDetail({ order }: { order: Order }) {
   const status = statusConfig[order.status];
+  const paymentStatus = paymentStatusConfig[order.payment?.status ?? "pending"];
   const updateOrderStatus = useUpdateOrderStatus(order.id);
 
   async function saveStatus(nextStatus: OrderStatus) {
@@ -98,6 +125,15 @@ export function OrderDetail({ order }: { order: Order }) {
           <p className="mt-1 text-sm text-muted-foreground">
             Update the order status shown to customers.
           </p>
+          <div className="mt-4 flex items-center justify-between gap-4 rounded-md border px-3 py-2">
+            <span className="text-sm font-medium text-foreground">Payment</span>
+            <Badge
+              className={paymentStatus.className}
+              variant={paymentStatus.variant}
+            >
+              {paymentStatus.label}
+            </Badge>
+          </div>
           <div className="mt-4">
             <OrderStatusForm
               defaultStatus={order.status}

@@ -735,7 +735,10 @@ export async function listOrdersForCustomer(
     return [];
   }
 
-  const orders = await OrderModel.find({ "customer.customerId": customerId })
+  const orders = await OrderModel.find({
+    "customer.customerId": customerId,
+    "payment.status": "paid",
+  })
     .sort({ createdAt: -1 })
     .exec();
 
@@ -753,6 +756,7 @@ export async function getOrderForCustomer(
   const order = await OrderModel.findOne({
     _id: orderId,
     "customer.customerId": customerId,
+    "payment.status": "paid",
   }).exec();
 
   return order ? await serializeOrder(order as OrderRecord) : null;
