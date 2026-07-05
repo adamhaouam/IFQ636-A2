@@ -97,10 +97,23 @@ export class NotificationService {
   }
 
   async markAllRead() {
+    const readAt = new Date();
+
     await this.repository.updateMany(
       { status: "unread" },
-      { readAt: new Date(), status: "read" },
+      { readAt, status: "read" },
     );
+
+    this.publisher.publishUpdated({
+      action: "mark_all_read",
+      createdAt: readAt.toISOString(),
+      id: "notifications-mark-all-read",
+      message: "All notifications marked as read",
+      resource: "notifications",
+      status: "read",
+      title: "Notifications updated",
+      type: "system",
+    });
   }
 
   async updateStatus(id: string, status: "read" | "dismissed") {

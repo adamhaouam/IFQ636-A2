@@ -1,7 +1,7 @@
 import { Button, Input, SidebarProvider, SidebarTrigger } from "@otbt/ui";
 import { ServerEventsProvider } from "@otbt/web";
 import { MessageSquareMore, Package2, Search } from "lucide-react";
-import { Outlet, useNavigate } from "react-router";
+import { Link, Outlet, useNavigate } from "react-router";
 
 import { AdminSidebar } from "../../components/sidebar";
 import { AccountMenu } from "../../modules/admin-shell";
@@ -29,13 +29,18 @@ export function AdminLayout() {
             <div className="flex h-16 items-center gap-3 px-4 md:px-6">
               <div className="flex min-w-0 items-center gap-3">
                 <SidebarTrigger />
-                <div className="flex size-9 items-center justify-center rounded-lg border bg-primary text-primary-foreground">
-                  <Package2 className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">Order of the Black Thorn</p>
-                  <p className="truncate text-xs text-muted-foreground">Store Management</p>
-                </div>
+                <Link
+                  className="flex min-w-0 items-center gap-3 rounded-md outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  to="/"
+                >
+                  <div className="flex size-9 items-center justify-center rounded-lg border bg-primary text-primary-foreground">
+                    <Package2 className="size-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">Order of the Black Thorn</p>
+                    <p className="truncate text-xs text-muted-foreground">Store Management</p>
+                  </div>
+                </Link>
               </div>
 
               <div className="relative ml-auto hidden max-w-sm flex-1 md:block">

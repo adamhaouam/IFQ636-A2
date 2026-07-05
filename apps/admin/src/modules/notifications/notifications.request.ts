@@ -27,6 +27,7 @@ export function updateNotificationStatus(
 
 export function markAllNotificationsRead() {
   return adminHttpRequest<{ ok: true }>("/notifications/mark-all-read", {
+    body: JSON.stringify({}),
     method: "POST",
   });
 }
